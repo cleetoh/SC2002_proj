@@ -1,0 +1,24 @@
+Classes:
+	- User (parent class of following 3)
+	- Student
+	- Company Rep
+	- Career Staff
+	- System
+	- MainApp
+
+
+
+SystemManager:
+	- fields: 
+	- methods:
+
+
+
+
+Student:
+	- fields: yearOfStudy (int); major (String)
+	- methods: applyInternship(); withdrawApp(); viewStatus()
+
+
+
+
