@@ -1,0 +1,2 @@
+applicationId,studentId,internshipId,status,withdrawalRequested,offerAccepted
+1,U2310001A,1,WITHDRAWN,false,false

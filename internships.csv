@@ -1,0 +1,2 @@
+internshipId,title,description,level,preferredMajor,openingDate,closingDate,status,companyName,representativeInChargeId,slots,isVisible
+1,test,test,BASIC,,,,APPROVED,test,test,5,true
