@@ -18,6 +18,7 @@ import java.util.List;
 public class StaffView {
     private final StaffController staffController;
     private final AuthController authController;
+    private FilterCriteria filterCriteria = FilterCriteria.builder().build();
 
     public StaffView(StaffController staffController, AuthController authController) {
         this.staffController = staffController;
@@ -39,8 +40,9 @@ public class StaffView {
                 case 7 -> showWithdrawalRequests();
                 case 8 -> handleWithdrawalDecision();
                 case 9 -> handleGenerateReport();
-                case 10 -> handleChangePassword();
-                case 11 -> running = false;
+                case 10 -> handleSetFilters();
+                case 11 -> handleChangePassword();
+                case 12 -> running = false;
                 default -> System.out.println("Invalid option. Please try again.");
             }
         }
@@ -59,9 +61,10 @@ public class StaffView {
         System.out.println("6. Reject Internship");
         System.out.println("7. View Withdrawal Requests");
         System.out.println("8. Process Withdrawal Request");
-        System.out.println("9. Generate Internship Report");
-        System.out.println("10. Change Password");
-        System.out.println("11. Logout");
+        System.out.println("9. View Internships");
+        System.out.println("10. Set/Update Filters");
+        System.out.println("11. Change Password");
+        System.out.println("12. Logout");
     }
 
     private void showPendingReps() {
@@ -176,8 +179,7 @@ public class StaffView {
     }
 
     private void handleGenerateReport() {
-        FilterCriteria criteria = buildCriteriaFromInput();
-        List<Internship> report = staffController.generateReport(criteria);
+        List<Internship> report = staffController.generateReport(filterCriteria);
         if (report.isEmpty()) {
             System.out.println("No internships found for selected filters.");
             return;
@@ -196,41 +198,28 @@ public class StaffView {
         }
     }
 
-    private FilterCriteria buildCriteriaFromInput() {
-        System.out.println("Select Status Filter (leave blank for all):");
-        for (int i = 0; i < InternshipStatus.values().length; i++) {
-            System.out.printf("%d. %s%n", i + 1, InternshipStatus.values()[i]);
-        }
-        String statusInput = ConsoleInput.readLine("Choice: ");
-        InternshipStatus status = null;
-        if (!statusInput.isBlank()) {
+    private void handleSetFilters() {
+        System.out.println("--- Set Internship Filters ---");
+        System.out.println("Enter new values or leave blank to keep current filter.");
+
+        String statusStr = ConsoleInput.readLine("Filter by Status (PENDING, APPROVED, REJECTED, FILLED): ").toUpperCase();
+        InternshipStatus status = statusStr.isEmpty() ? null : InternshipStatus.valueOf(statusStr);
+
+        String levelStr = ConsoleInput.readLine("Filter by Level (BASIC, ADVANCED): ").toUpperCase();
+        InternshipLevel level = levelStr.isEmpty() ? null : InternshipLevel.valueOf(levelStr);
+
+        String major = ConsoleInput.readLine("Filter by Preferred Major: ");
+
+        String dateStr = ConsoleInput.readLine("Closing Date Before (YYYY-MM-DD): ");
+        LocalDate closingDate = null;
+        if (!dateStr.isEmpty()) {
             try {
-                int index = Integer.parseInt(statusInput.trim()) - 1;
-                if (index >= 0 && index < InternshipStatus.values().length) {
-                    status = InternshipStatus.values()[index];
-                }
-            } catch (NumberFormatException ignored) {
+                closingDate = LocalDate.parse(dateStr);
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date format. Please use YYYY-MM-DD.");
             }
         }
 
-        System.out.println("Select Level Filter (leave blank for all):");
-        for (int i = 0; i < InternshipLevel.values().length; i++) {
-            System.out.printf("%d. %s%n", i + 1, InternshipLevel.values()[i]);
-        }
-        String levelInput = ConsoleInput.readLine("Choice: ");
-        InternshipLevel level = null;
-        if (!levelInput.isBlank()) {
-            try {
-                int index = Integer.parseInt(levelInput.trim()) - 1;
-                if (index >= 0 && index < InternshipLevel.values().length) {
-                    level = InternshipLevel.values()[index];
-                }
-            } catch (NumberFormatException ignored) {
-            }
-        }
-
-        String major = ConsoleInput.readLine("Preferred Major Filter (leave blank for all): ");
-        LocalDate closingBefore = promptForDate("Closing Date on/before (YYYY-MM-DD, blank for none): ");
         String visibilityInput = ConsoleInput.readLine("Visible Only? (y/n/blank for either): ");
         Boolean visibleOnly = null;
         if (!visibilityInput.isBlank()) {
@@ -241,23 +230,14 @@ public class StaffView {
             }
         }
 
-        FilterCriteria.Builder builder = FilterCriteria.builder();
-        if (status != null) {
-            builder.status(status);
-        }
-        if (level != null) {
-            builder.level(level);
-        }
-        if (!major.isBlank()) {
-            builder.preferredMajor(major.trim());
-        }
-        if (closingBefore != null) {
-            builder.closingDateBefore(closingBefore);
-        }
-        if (visibleOnly != null) {
-            builder.visibleOnly(visibleOnly);
-        }
-        return builder.build();
+        filterCriteria = FilterCriteria.builder()
+                .status(status)
+                .level(level)
+                .preferredMajor(major.isEmpty() ? null : major)
+                .closingDateBefore(closingDate)
+                .visibleOnly(visibleOnly)
+                .build();
+        System.out.println("Filters updated.");
     }
 
     private void handleChangePassword() {

@@ -3,9 +3,11 @@ package com.internship.system.view;
 import com.internship.system.controller.AuthController;
 import com.internship.system.controller.CompanyController;
 import com.internship.system.model.Application;
+import com.internship.system.model.FilterCriteria;
 import com.internship.system.model.Internship;
 import com.internship.system.model.enums.ApplicationStatus;
 import com.internship.system.model.enums.InternshipLevel;
+import com.internship.system.model.enums.InternshipStatus;
 import com.internship.system.model.user.CompanyRepresentative;
 import com.internship.system.util.ConsoleInput;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class CompanyView {
     private final CompanyController companyController;
     private final AuthController authController;
+    private FilterCriteria filterCriteria = FilterCriteria.builder().build();
 
     public CompanyView(CompanyController companyController, AuthController authController) {
         this.companyController = companyController;
@@ -29,13 +32,14 @@ public class CompanyView {
             int choice = ConsoleInput.readInt("Select an option: ");
             switch (choice) {
                 case 1 -> showMyInternships();
-                case 2 -> handleCreateInternship();
-                case 3 -> handleUpdateInternship();
-                case 4 -> handleToggleVisibility();
-                case 5 -> handleViewApplications();
-                case 6 -> handleProcessApplication();
-                case 7 -> handleChangePassword();
-                case 8 -> running = false;
+                case 2 -> handleSetFilters();
+                case 3 -> handleCreateInternship();
+                case 4 -> handleUpdateInternship();
+                case 5 -> handleToggleVisibility();
+                case 6 -> handleViewApplications();
+                case 7 -> handleProcessApplication();
+                case 8 -> handleChangePassword();
+                case 9 -> running = false;
                 default -> System.out.println("Invalid option. Please try again.");
             }
         }
@@ -46,23 +50,24 @@ public class CompanyView {
         System.out.println();
         System.out.println("==== Company Representative Menu ====");
         System.out.println("Logged in as: " + rep.getName() + " (" + rep.getUserId() + ")");
-        System.out.println("1. View My Internships");
-        System.out.println("2. Create Internship");
-        System.out.println("3. Update Internship");
-        System.out.println("4. Toggle Internship Visibility");
-        System.out.println("5. View Internship Applications");
-        System.out.println("6. Process Application");
-        System.out.println("7. Change Password");
-        System.out.println("8. Logout");
+        System.out.println("1. View Company Internships");
+        System.out.println("2. Set/Update Filters");
+        System.out.println("3. Create Internship");
+        System.out.println("4. Update Internship");
+        System.out.println("5. Toggle Internship Visibility");
+        System.out.println("6. View Internship Applications");
+        System.out.println("7. Process Application");
+        System.out.println("8. Change Password");
+        System.out.println("9. Logout");
     }
 
     private void showMyInternships() {
-        List<Internship> internships = companyController.viewMyInternships();
+        List<Internship> internships = companyController.getInternships(filterCriteria);
         if (internships.isEmpty()) {
-            System.out.println("You have not created any internships yet.");
+            System.out.println("No internships match the current filters.");
             return;
         }
-        System.out.println("--- My Internships ---");
+        System.out.println("--- Company Internships ---");
         for (Internship internship : internships) {
             System.out.printf("ID: %d | %s | Level: %s | Status: %s | Visible: %s | Slots: %d | Confirmed: %d%n",
                     internship.getInternshipId(),
@@ -73,6 +78,38 @@ public class CompanyView {
                     internship.getSlots(),
                     internship.getConfirmedOffers());
         }
+    }
+
+    private void handleSetFilters() {
+        System.out.println("--- Set Internship Filters ---");
+        System.out.println("Enter new values or leave blank to keep current filter.");
+
+        String statusStr = ConsoleInput.readLine("Filter by Status (PENDING, APPROVED, REJECTED, FILLED): ")
+                .toUpperCase();
+        InternshipStatus status = statusStr.isEmpty() ? null : InternshipStatus.valueOf(statusStr);
+
+        String levelStr = ConsoleInput.readLine("Filter by Level (BASIC, ADVANCED): ").toUpperCase();
+        InternshipLevel level = levelStr.isEmpty() ? null : InternshipLevel.valueOf(levelStr);
+
+        String major = ConsoleInput.readLine("Filter by Preferred Major: ");
+
+        String dateStr = ConsoleInput.readLine("Closing Date Before (YYYY-MM-DD): ");
+        LocalDate closingDate = null;
+        if (!dateStr.isEmpty()) {
+            try {
+                closingDate = LocalDate.parse(dateStr);
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+            }
+        }
+
+        filterCriteria = FilterCriteria.builder()
+                .status(status)
+                .level(level)
+                .preferredMajor(major.isEmpty() ? null : major)
+                .closingDateBefore(closingDate)
+                .build();
+        System.out.println("Filters updated.");
     }
 
     private void handleCreateInternship() {

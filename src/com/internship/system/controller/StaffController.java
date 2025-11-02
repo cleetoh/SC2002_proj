@@ -122,19 +122,6 @@ public class StaffController {
     }
 
     public List<Internship> generateReport(FilterCriteria criteria) {
-        return dataManager.getInternships().stream()
-                .filter(internship -> criteria.getStatus().map(status -> internship.getStatus() == status).orElse(true))
-                .filter(internship -> criteria.getLevel().map(level -> internship.getLevel() == level).orElse(true))
-                .filter(internship -> criteria.getPreferredMajor()
-                        .map(major -> internship.getPreferredMajor().equalsIgnoreCase(major))
-                        .orElse(true))
-                .filter(internship -> criteria.getClosingDateBefore()
-                        .map(date -> internship.getClosingDate() != null && !internship.getClosingDate().isAfter(date))
-                        .orElse(true))
-                .filter(internship -> criteria.getVisibleOnly()
-                        .map(visible -> visible == internship.isVisible())
-                        .orElse(true))
-                .sorted((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()))
-                .collect(Collectors.toList());
+        return dataManager.getFilteredInternships(criteria);
     }
 }

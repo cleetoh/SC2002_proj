@@ -2,6 +2,7 @@ package com.internship.system.controller;
 
 import com.internship.system.data.DataManager;
 import com.internship.system.model.Application;
+import com.internship.system.model.FilterCriteria;
 import com.internship.system.model.Internship;
 import com.internship.system.model.enums.ApplicationStatus;
 import com.internship.system.model.enums.InternshipLevel;
@@ -28,9 +29,11 @@ public class StudentController {
         return currentStudent;
     }
 
-    public List<Internship> getVisibleInternships() {
+    public List<Internship> getVisibleInternships(FilterCriteria criteria) {
         LocalDate today = LocalDate.now();
-        return dataManager.getInternships().stream()
+        List<Internship> filteredInternships = dataManager.getFilteredInternships(criteria);
+
+        return filteredInternships.stream()
                 .filter(internship -> internship.getStatus() == InternshipStatus.APPROVED)
                 .filter(Internship::isVisible)
                 .filter(Internship::hasAvailableSlots)

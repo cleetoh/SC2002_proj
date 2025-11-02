@@ -2,6 +2,7 @@ package com.internship.system.controller;
 
 import com.internship.system.data.DataManager;
 import com.internship.system.model.Application;
+import com.internship.system.model.FilterCriteria;
 import com.internship.system.model.Internship;
 import com.internship.system.model.enums.ApplicationStatus;
 import com.internship.system.model.enums.InternshipLevel;
@@ -49,6 +50,13 @@ public class CompanyController {
 
     public CompanyRepresentative getCurrentRep() {
         return currentRep;
+    }
+
+    public List<Internship> getInternships(FilterCriteria criteria) {
+        List<Internship> filteredInternships = dataManager.getFilteredInternships(criteria);
+        return filteredInternships.stream()
+                .filter(internship -> internship.getCompanyName().equals(currentRep.getCompanyName()))
+                .collect(Collectors.toList());
     }
 
     public boolean canCreateMoreInternships() {

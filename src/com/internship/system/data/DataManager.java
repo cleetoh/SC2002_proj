@@ -8,6 +8,7 @@ import com.internship.system.model.user.CareerCenterStaff;
 import com.internship.system.model.user.CompanyRepresentative;
 import com.internship.system.model.user.Student;
 import com.internship.system.util.IdGenerator;
+import com.internship.system.model.FilterCriteria;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -187,6 +188,23 @@ public class DataManager {
         applicationsById.remove(applicationId);
     }
 
+    public List<Internship> getFilteredInternships(FilterCriteria criteria) {
+        return internships.stream()
+                .filter(internship -> criteria.getStatus().map(status -> internship.getStatus() == status).orElse(true))
+                .filter(internship -> criteria.getLevel().map(level -> internship.getLevel() == level).orElse(true))
+                .filter(internship -> criteria.getPreferredMajor()
+                        .map(major -> internship.getPreferredMajor().equalsIgnoreCase(major))
+                        .orElse(true))
+                .filter(internship -> criteria.getClosingDateBefore()
+                        .map(date -> internship.getClosingDate() != null && !internship.getClosingDate().isAfter(date))
+                        .orElse(true))
+                .filter(internship -> criteria.getVisibleOnly()
+                        .map(visible -> visible == internship.isVisible())
+                        .orElse(true))
+                .sorted((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()))
+                .collect(Collectors.toList());
+    }
+
     public int nextInternshipId() {
         return idGenerator.next("internship");
     }
@@ -200,13 +218,12 @@ public class DataManager {
                 .filter(application -> application.getStatus() == ApplicationStatus.SUCCESSFUL)
                 .filter(Application::isOfferAccepted)
                 .collect(Collectors.groupingBy(Application::getInternshipId, Collectors.counting()));
-        acceptedCounts.forEach((internshipId, count) ->
-                findInternshipById(internshipId).ifPresent(internship -> {
-                    internship.setConfirmedOffers(count.intValue());
-                    if (internship.getConfirmedOffers() >= internship.getSlots()) {
-                        internship.setStatus(InternshipStatus.FILLED);
-                    }
-                }));
+        acceptedCounts.forEach((internshipId, count) -> findInternshipById(internshipId).ifPresent(internship -> {
+            internship.setConfirmedOffers(count.intValue());
+            if (internship.getConfirmedOffers() >= internship.getSlots()) {
+                internship.setStatus(InternshipStatus.FILLED);
+            }
+        }));
     }
 
     private void clearCaches() {
