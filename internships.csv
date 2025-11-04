@@ -1,0 +1,3 @@
+internshipId,title,description,level,preferredMajor,openingDate,closingDate,status,companyName,representativeInChargeId,slots,isVisible
+1,test,test,BASIC,,,,APPROVED,test,test,5,true
+2,test2,test2,BASIC,Data Science & AI,,,APPROVED,test,test,5,true
