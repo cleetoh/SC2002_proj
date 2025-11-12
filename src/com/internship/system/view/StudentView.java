@@ -32,7 +32,7 @@ public class StudentView {
             switch (choice) {
                 case 1 -> showEligibleInternships();
                 case 2 -> handleSetFilters();
-                case 3 -> showMyApplications();
+                case 3 -> showInternshipApplications();
                 case 4 -> handleApplyForInternship();
                 case 5 -> handleAcceptOffer();
                 case 6 -> handleWithdrawalRequest();
@@ -102,7 +102,7 @@ public class StudentView {
         System.out.println("Filters updated.");
     }
 
-    private void showMyApplications() {
+    private void showInternshipApplications() {
         List<Application> applications = studentController.viewAppliedInternships();
         if (applications.isEmpty()) {
             System.out.println("You have not submitted any applications yet.");

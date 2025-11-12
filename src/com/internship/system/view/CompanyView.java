@@ -31,7 +31,7 @@ public class CompanyView {
             displayMenu();
             int choice = ConsoleInput.readInt("Select an option: ");
             switch (choice) {
-                case 1 -> showMyInternships();
+                case 1 -> showCompanyInternships();
                 case 2 -> handleSetFilters();
                 case 3 -> handleCreateInternship();
                 case 4 -> handleUpdateInternship();
@@ -61,7 +61,7 @@ public class CompanyView {
         System.out.println("9. Logout");
     }
 
-    private void showMyInternships() {
+    private void showCompanyInternships() {
         List<Internship> internships = companyController.getInternships(filterCriteria);
         if (internships.isEmpty()) {
             System.out.println("No internships match the current filters.");
