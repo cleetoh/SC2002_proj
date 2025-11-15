@@ -6,6 +6,7 @@ import com.internship.system.util.ConsoleInput;
 public class MainMenuView {
 
     public void displaySplash() {
+        System.out.println();
         System.out.println("============================================");
         System.out.println("  Internship Placement Management System");
         System.out.println("============================================");
@@ -51,19 +52,27 @@ public class MainMenuView {
     }
 
     public void displayLoginSuccess(User user) {
+        System.out.println();
         System.out.println("Welcome, " + user.getName() + "!");
+        System.out.println();
     }
 
     public void displayLoginFailure() {
+        System.out.println();
         System.out.println("Invalid credentials or account not yet approved. Please try again.");
+        System.out.println();
     }
 
     public void displayRegistrationSuccess() {
+        System.out.println();
         System.out.println("Registration submitted. Await approval from Career Center Staff.");
+        System.out.println();
     }
 
     public void displayRegistrationFailure(String message) {
+        System.out.println();
         System.out.println("Registration failed: " + message);
+        System.out.println();
     }
 
     public void displayExitMessage() {

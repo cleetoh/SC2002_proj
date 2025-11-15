@@ -8,24 +8,21 @@ public class Application {
     private int internshipId;
     private ApplicationStatus status;
     private boolean withdrawalRequested;
-    private boolean offerAccepted;
 
     public Application(int applicationId, String studentId, int internshipId, ApplicationStatus status) {
-        this(applicationId, studentId, internshipId, status, false, false);
+        this(applicationId, studentId, internshipId, status, false);
     }
 
     public Application(int applicationId,
-                       String studentId,
-                       int internshipId,
-                       ApplicationStatus status,
-                       boolean withdrawalRequested,
-                       boolean offerAccepted) {
+            String studentId,
+            int internshipId,
+            ApplicationStatus status,
+            boolean withdrawalRequested) {
         this.applicationId = applicationId;
         this.studentId = studentId;
         this.internshipId = internshipId;
         this.status = status;
         this.withdrawalRequested = withdrawalRequested;
-        this.offerAccepted = offerAccepted;
     }
 
     public int getApplicationId() {
@@ -66,13 +63,5 @@ public class Application {
 
     public void setWithdrawalRequested(boolean withdrawalRequested) {
         this.withdrawalRequested = withdrawalRequested;
-    }
-
-    public boolean isOfferAccepted() {
-        return offerAccepted;
-    }
-
-    public void setOfferAccepted(boolean offerAccepted) {
-        this.offerAccepted = offerAccepted;
     }
 }

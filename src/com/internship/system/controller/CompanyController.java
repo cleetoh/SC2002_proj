@@ -60,7 +60,7 @@ public class CompanyController {
     }
 
     public boolean canCreateMoreInternships() {
-        long count = viewMyInternships().stream().count();
+        long count = viewInternships().stream().count();
         return count < MAX_INTERNSHIPS_PER_REP;
     }
 
@@ -97,7 +97,7 @@ public class CompanyController {
         return Optional.of(internship);
     }
 
-    public List<Internship> viewMyInternships() {
+    public List<Internship> viewInternships() {
         return dataManager.getInternships().stream()
                 .filter(internship -> internship.getRepresentativeInChargeId().equals(currentRep.getUserId()))
                 .collect(Collectors.toList());
@@ -161,7 +161,8 @@ public class CompanyController {
     }
 
     public boolean processApplication(int applicationId, ApplicationStatus newStatus) {
-        if (newStatus != ApplicationStatus.SUCCESSFUL && newStatus != ApplicationStatus.UNSUCCESSFUL) {
+        if (newStatus != ApplicationStatus.SUCCESSFUL_PENDING
+                && newStatus != ApplicationStatus.UNSUCCESSFUL) {
             return false;
         }
         Optional<Application> applicationOpt = dataManager.findApplicationById(applicationId);
@@ -169,21 +170,32 @@ public class CompanyController {
             return false;
         }
         Application application = applicationOpt.get();
+
+        // Cannot process withdrawn applications
+        if (application.getStatus() == ApplicationStatus.PENDING_WITHDRAWN
+                || application.getStatus() == ApplicationStatus.SUCCESSFUL_WITHDRAWN) {
+            return false;
+        }
+
         Optional<Internship> internshipOpt = ensureOwnership(application.getInternshipId());
         if (internshipOpt.isEmpty()) {
             return false;
         }
         Internship internship = internshipOpt.get();
 
-        if (newStatus == ApplicationStatus.SUCCESSFUL && !internship.hasAvailableSlots()) {
+        if (newStatus == ApplicationStatus.SUCCESSFUL_PENDING && !internship.hasAvailableSlots()) {
             return false;
         }
 
-        boolean wasAccepted = application.isOfferAccepted();
+        ApplicationStatus oldStatus = application.getStatus();
         application.setStatus(newStatus);
         application.setWithdrawalRequested(false);
-        if (newStatus != ApplicationStatus.SUCCESSFUL && wasAccepted) {
-            application.setOfferAccepted(false);
+
+        // If changing from SUCCESSFUL_ACCEPTED to something else, may need to revoke
+        // offer
+        if (oldStatus == ApplicationStatus.SUCCESSFUL_ACCEPTED
+                && newStatus != ApplicationStatus.SUCCESSFUL_ACCEPTED
+                && internship.getConfirmedOffers() > 0) {
             internship.revokeConfirmedOffer();
         }
 

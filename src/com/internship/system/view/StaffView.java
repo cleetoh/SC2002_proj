@@ -31,18 +31,13 @@ public class StaffView {
             displayMenu();
             int choice = ConsoleInput.readInt("Select an option: ");
             switch (choice) {
-                case 1 -> showPendingReps();
-                case 2 -> handleApproveRep();
-                case 3 -> handleRejectRep();
-                case 4 -> showPendingInternships();
-                case 5 -> handleApproveInternship();
-                case 6 -> handleRejectInternship();
-                case 7 -> showWithdrawalRequests();
-                case 8 -> handleWithdrawalDecision();
-                case 9 -> handleGenerateReport();
-                case 10 -> handleSetFilters();
-                case 11 -> handleChangePassword();
-                case 12 -> running = false;
+                case 1 -> handleManagePendingReps();
+                case 2 -> handleManagePendingInternships();
+                case 3 -> handleManageWithdrawalRequests();
+                case 4 -> handleGenerateReport();
+                case 5 -> handleSetFilters();
+                case 6 -> handleChangePassword();
+                case 7 -> running = false;
                 default -> System.out.println("Invalid option. Please try again.");
             }
         }
@@ -53,140 +48,322 @@ public class StaffView {
         System.out.println();
         System.out.println("==== Career Center Staff Menu ====");
         System.out.println("Logged in as: " + staff.getName() + " (" + staff.getUserId() + ")");
-        System.out.println("1. View Pending Company Representatives");
-        System.out.println("2. Approve Company Representative");
-        System.out.println("3. Reject Company Representative");
-        System.out.println("4. View Pending Internships");
-        System.out.println("5. Approve Internship");
-        System.out.println("6. Reject Internship");
-        System.out.println("7. View Withdrawal Requests");
-        System.out.println("8. Process Withdrawal Request");
-        System.out.println("9. View Internships");
-        System.out.println("10. Set/Update Filters");
-        System.out.println("11. Change Password");
-        System.out.println("12. Logout");
+        System.out.println("1. Manage Pending Company Representatives");
+        System.out.println("2. Manage Pending Internships");
+        System.out.println("3. Manage Withdrawal Requests");
+        System.out.println("4. View Internships");
+        System.out.println("5. Set/Update Filters");
+        System.out.println("6. Change Password");
+        System.out.println("7. Logout");
     }
 
-    private void showPendingReps() {
-        List<CompanyRepresentative> reps = staffController.viewPendingReps();
-        if (reps.isEmpty()) {
-            System.out.println("No pending representatives.");
-            return;
-        }
-        System.out.println("--- Pending Representatives ---");
-        for (CompanyRepresentative rep : reps) {
-            System.out.printf("ID: %s | Name: %s | Company: %s | Department: %s | Position: %s%n",
-                    rep.getUserId(), rep.getName(), rep.getCompanyName(), rep.getDepartment(), rep.getPosition());
-        }
-    }
-
-    private void handleApproveRep() {
-        String repId = ConsoleInput.readLine("Enter Representative ID to approve: ");
-        boolean success = staffController.approveCompanyRep(repId);
-        if (success) {
-            System.out.println("Representative approved.");
-        } else {
-            System.out.println("Unable to approve representative. Check the ID.");
-        }
-    }
-
-    private void handleRejectRep() {
-        String repId = ConsoleInput.readLine("Enter Representative ID to reject: ");
-        boolean success = staffController.rejectCompanyRep(repId);
-        if (success) {
-            System.out.println("Representative marked as not approved.");
-        } else {
-            System.out.println("Unable to reject representative. Check the ID.");
-        }
-    }
-
-    private void showPendingInternships() {
-        List<Internship> internships = staffController.viewPendingInternships();
-        if (internships.isEmpty()) {
-            System.out.println("No pending internships.");
-            return;
-        }
-        System.out.println("--- Pending Internships ---");
-        for (Internship internship : internships) {
-            System.out.printf("ID: %d | %s | Company: %s | Level: %s | Preferred Major: %s%n",
-                    internship.getInternshipId(),
-                    internship.getTitle(),
-                    internship.getCompanyName(),
-                    internship.getLevel(),
-                    internship.getPreferredMajor());
-        }
-    }
-
-    private void handleApproveInternship() {
-        int internshipId = ConsoleInput.readInt("Enter Internship ID to approve: ");
-        boolean success = staffController.approveInternship(internshipId);
-        if (success) {
-            System.out.println("Internship approved and made visible.");
-        } else {
-            System.out.println("Unable to approve internship. Check the ID.");
-        }
-    }
-
-    private void handleRejectInternship() {
-        int internshipId = ConsoleInput.readInt("Enter Internship ID to reject: ");
-        boolean success = staffController.rejectInternship(internshipId);
-        if (success) {
-            System.out.println("Internship rejected.");
-        } else {
-            System.out.println("Unable to reject internship. Check the ID.");
-        }
-    }
-
-    private void showWithdrawalRequests() {
-        List<Application> requests = staffController.getPendingWithdrawalRequests();
-        if (requests.isEmpty()) {
-            System.out.println("No withdrawal requests at the moment.");
-            return;
-        }
-        System.out.println("--- Withdrawal Requests ---");
-        for (Application application : requests) {
-            System.out.printf("Application ID: %d | Student ID: %s | Internship ID: %d | Status: %s | Accepted: %s%n",
-                    application.getApplicationId(),
-                    application.getStudentId(),
-                    application.getInternshipId(),
-                    application.getStatus(),
-                    application.isOfferAccepted() ? "Yes" : "No");
-        }
-    }
-
-    private void handleWithdrawalDecision() {
-        int applicationId = ConsoleInput.readInt("Enter Application ID: ");
-        System.out.println("1. Approve Withdrawal");
-        System.out.println("2. Reject Withdrawal");
-        int choice = ConsoleInput.readInt("Select outcome: ");
-        boolean approve = switch (choice) {
-            case 1 -> true;
-            case 2 -> false;
-            default -> {
-                System.out.println("Invalid selection.");
-                yield false;
+    private void handleManagePendingReps() {
+        boolean managing = true;
+        while (managing) {
+            List<CompanyRepresentative> reps = staffController.viewPendingReps();
+            if (reps.isEmpty()) {
+                System.out.println();
+                System.out.println("No pending representatives.");
+                System.out.println();
+                return;
             }
-        };
-        if (choice != 1 && choice != 2) {
-            return;
+
+            System.out.println();
+            System.out.println("--- Pending Representatives ---");
+            for (CompanyRepresentative rep : reps) {
+                System.out.printf("ID: %s | Name: %s | Company: %s | Department: %s | Position: %s%n",
+                        rep.getUserId(), rep.getName(), rep.getCompanyName(), rep.getDepartment(), rep.getPosition());
+            }
+
+            System.out.println();
+            String repId;
+
+            // Loop until a valid ID is entered or user cancels
+            while (true) {
+                repId = ConsoleInput.readLine("Enter Representative ID to process (or press Enter to go back): ");
+                if (repId.isBlank()) {
+                    System.out.println("Returning to main menu.");
+                    return;
+                }
+
+                // Validate the representative ID
+                final String finalRepId = repId;
+                boolean validId = reps.stream()
+                        .anyMatch(rep -> rep.getUserId().equals(finalRepId));
+
+                if (validId) {
+                    break;
+                } else {
+                    System.out.println("Invalid Representative ID. Please try again.");
+                }
+            }
+
+            System.out.println();
+            System.out.println("1. Approve Representative");
+            System.out.println("2. Reject Representative");
+            System.out.println();
+            String actionInput = ConsoleInput.readLine("Select action (or press Enter to cancel): ");
+            if (actionInput.isBlank()) {
+                System.out.println("Operation cancelled.");
+                continue;
+            }
+
+            int choice;
+            try {
+                choice = Integer.parseInt(actionInput.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid option. Operation cancelled.");
+                continue;
+            }
+
+            boolean success = false;
+            switch (choice) {
+                case 1 -> {
+                    success = staffController.approveCompanyRep(repId);
+                    System.out.println();
+                    if (success) {
+                        System.out.println("Representative approved.");
+                    } else {
+                        System.out.println("Unable to approve representative. Check the ID.");
+                    }
+                    System.out.println();
+                }
+                case 2 -> {
+                    success = staffController.rejectCompanyRep(repId);
+                    System.out.println();
+                    if (success) {
+                        System.out.println("Representative marked as not approved.");
+                    } else {
+                        System.out.println("Unable to reject representative. Check the ID.");
+                    }
+                    System.out.println();
+                }
+                default -> {
+                    System.out.println();
+                    System.out.println("Invalid option. Operation cancelled.");
+                    System.out.println();
+                }
+            }
         }
-        boolean success = staffController.processWithdrawalRequest(applicationId, approve);
-        if (success) {
-            System.out.println("Withdrawal request processed.");
-        } else {
-            System.out.println("Unable to process request. Check the application ID and status.");
+    }
+
+    private void handleManagePendingInternships() {
+        boolean managing = true;
+        while (managing) {
+            List<Internship> internships = staffController.viewPendingInternships();
+            if (internships.isEmpty()) {
+                System.out.println();
+                System.out.println("No pending internships.");
+                System.out.println();
+                return;
+            }
+
+            System.out.println();
+            System.out.println("--- Pending Internships ---");
+            for (Internship internship : internships) {
+                System.out.printf("ID: %d | %s | Company: %s | Level: %s | Preferred Major: %s%n",
+                        internship.getInternshipId(),
+                        internship.getTitle(),
+                        internship.getCompanyName(),
+                        internship.getLevel(),
+                        internship.getPreferredMajor());
+            }
+
+            System.out.println();
+            int internshipId;
+
+            // Loop until a valid ID is entered or user cancels
+            while (true) {
+                String input = ConsoleInput.readLine("Enter Internship ID to process (or press Enter to go back): ");
+                if (input.isBlank()) {
+                    System.out.println("Returning to main menu.");
+                    return;
+                }
+
+                // Try to parse the input as an integer
+                try {
+                    internshipId = Integer.parseInt(input.trim());
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid Internship ID. Please enter a valid number.");
+                    continue;
+                }
+
+                // Validate the internship ID
+                final int finalInternshipId = internshipId;
+                boolean validId = internships.stream()
+                        .anyMatch(internship -> internship.getInternshipId() == finalInternshipId);
+
+                if (validId) {
+                    break;
+                } else {
+                    System.out.println("Invalid Internship ID. Please try again.");
+                }
+            }
+
+            System.out.println();
+            System.out.println("1. Approve Internship");
+            System.out.println("2. Reject Internship");
+            System.out.println();
+            String actionInput = ConsoleInput.readLine("Select action (or press Enter to cancel): ");
+            if (actionInput.isBlank()) {
+                System.out.println("Operation cancelled.");
+                continue;
+            }
+
+            int choice;
+            try {
+                choice = Integer.parseInt(actionInput.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid option. Operation cancelled.");
+                continue;
+            }
+
+            boolean success = false;
+            switch (choice) {
+                case 1 -> {
+                    success = staffController.approveInternship(internshipId);
+                    System.out.println();
+                    if (success) {
+                        System.out.println("Internship approved and made visible.");
+                    } else {
+                        System.out.println("Unable to approve internship. Check the ID.");
+                    }
+                    System.out.println();
+                }
+                case 2 -> {
+                    success = staffController.rejectInternship(internshipId);
+                    System.out.println();
+                    if (success) {
+                        System.out.println("Internship rejected.");
+                    } else {
+                        System.out.println("Unable to reject internship. Check the ID.");
+                    }
+                    System.out.println();
+                }
+                default -> {
+                    System.out.println();
+                    System.out.println("Invalid option. Operation cancelled.");
+                    System.out.println();
+                }
+            }
+        }
+    }
+
+    private void handleManageWithdrawalRequests() {
+        boolean managing = true;
+        while (managing) {
+            List<Application> requests = staffController.getPendingWithdrawalRequests();
+            if (requests.isEmpty()) {
+                System.out.println();
+                System.out.println("No withdrawal requests at the moment.");
+                System.out.println();
+                return;
+            }
+
+            System.out.println();
+            System.out.println("--- Withdrawal Requests ---");
+            for (Application application : requests) {
+                System.out.printf("Application ID: %d | Student ID: %s | Internship ID: %d | Status: %s%n",
+                        application.getApplicationId(),
+                        application.getStudentId(),
+                        application.getInternshipId(),
+                        application.getStatus());
+            }
+
+            System.out.println();
+            int applicationId;
+
+            // Loop until a valid ID is entered or user cancels
+            while (true) {
+                String input = ConsoleInput.readLine("Enter Application ID to process (or press Enter to go back): ");
+                if (input.isBlank()) {
+                    System.out.println("Returning to main menu.");
+                    return;
+                }
+
+                // Try to parse the input as an integer
+                try {
+                    applicationId = Integer.parseInt(input.trim());
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid Application ID. Please enter a valid number.");
+                    continue;
+                }
+
+                // Validate the application ID
+                final int finalApplicationId = applicationId;
+                boolean validId = requests.stream()
+                        .anyMatch(application -> application.getApplicationId() == finalApplicationId);
+
+                if (validId) {
+                    break;
+                } else {
+                    System.out.println("Invalid Application ID. Please try again.");
+                }
+            }
+
+            System.out.println();
+            System.out.println("1. Approve Withdrawal");
+            System.out.println("2. Reject Withdrawal");
+            System.out.println();
+            String actionInput = ConsoleInput.readLine("Select action (or press Enter to cancel): ");
+            if (actionInput.isBlank()) {
+                System.out.println("Operation cancelled.");
+                continue;
+            }
+
+            int choice;
+            try {
+                choice = Integer.parseInt(actionInput.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid option. Operation cancelled.");
+                continue;
+            }
+
+            boolean success = false;
+            switch (choice) {
+                case 1 -> {
+                    success = staffController.processWithdrawalRequest(applicationId, true);
+                    System.out.println();
+                    if (success) {
+                        System.out.println("Withdrawal request approved.");
+                    } else {
+                        System.out.println("Unable to process request. Check the application ID and status.");
+                    }
+                    System.out.println();
+                }
+                case 2 -> {
+                    success = staffController.processWithdrawalRequest(applicationId, false);
+                    System.out.println();
+                    if (success) {
+                        System.out.println("Withdrawal request rejected.");
+                    } else {
+                        System.out.println("Unable to process request. Check the application ID and status.");
+                    }
+                    System.out.println();
+                }
+                default -> {
+                    System.out.println();
+                    System.out.println("Invalid option. Operation cancelled.");
+                    System.out.println();
+                }
+            }
         }
     }
 
     private void handleGenerateReport() {
         List<Internship> report = staffController.generateReport(filterCriteria);
         if (report.isEmpty()) {
+            System.out.println();
             System.out.println("No internships found for selected filters.");
+            System.out.println();
             return;
         }
+
+        System.out.println();
         System.out.println("--- Internship Report ---");
         for (Internship internship : report) {
-            System.out.printf("ID: %d | Title: %s | Company: %s | Level: %s | Status: %s | Preferred Major: %s | Visible: %s | Closing Date: %s%n",
+            System.out.printf(
+                    "ID: %d | Title: %s | Company: %s | Level: %s | Status: %s | Preferred Major: %s | Visible: %s | Closing Date: %s%n",
                     internship.getInternshipId(),
                     internship.getTitle(),
                     internship.getCompanyName(),
@@ -196,13 +373,17 @@ public class StaffView {
                     internship.isVisible() ? "Yes" : "No",
                     internship.getClosingDate() != null ? internship.getClosingDate() : "-");
         }
+        System.out.println();
     }
 
     private void handleSetFilters() {
+        System.out.println();
         System.out.println("--- Set Internship Filters ---");
         System.out.println("Enter new values or leave blank to keep current filter.");
+        System.out.println();
 
-        String statusStr = ConsoleInput.readLine("Filter by Status (PENDING, APPROVED, REJECTED, FILLED): ").toUpperCase();
+        String statusStr = ConsoleInput.readLine("Filter by Status (PENDING, APPROVED, REJECTED, FILLED): ")
+                .toUpperCase();
         InternshipStatus status = statusStr.isEmpty() ? null : InternshipStatus.valueOf(statusStr);
 
         String levelStr = ConsoleInput.readLine("Filter by Level (BASIC, ADVANCED): ").toUpperCase();
@@ -237,17 +418,29 @@ public class StaffView {
                 .closingDateBefore(closingDate)
                 .visibleOnly(visibleOnly)
                 .build();
+        System.out.println();
         System.out.println("Filters updated.");
+        System.out.println();
     }
 
     private void handleChangePassword() {
-        String newPassword = ConsoleInput.readLine("Enter new password: ");
+        System.out.println();
+        String newPassword = ConsoleInput.readLine("Enter new password (or press Enter to cancel): ");
+        if (newPassword.isBlank()) {
+            System.out.println();
+            System.out.println("Operation cancelled.");
+            System.out.println();
+            return;
+        }
+
         boolean success = authController.changePassword(staffController.getCurrentStaff(), newPassword);
+        System.out.println();
         if (success) {
             System.out.println("Password updated successfully.");
         } else {
             System.out.println("Password update failed. Please provide a non-empty value.");
         }
+        System.out.println();
     }
 
     private LocalDate promptForDate(String prompt) {

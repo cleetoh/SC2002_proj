@@ -40,7 +40,7 @@ com.internship.system
 │   ├── FilterCriteria.java// Represents filtering criteria for reports
 │   └── enums/             // Enumerations for fixed sets of values
 │       ├── InternshipLevel.java  // (BASIC, INTERMEDIATE, ADVANCED)
-│       ├── ApplicationStatus.java // (PENDING, SUCCESSFUL, UNSUCCESSFUL, WITHDRAWN)
+│       ├── ApplicationStatus.java // (PENDING, SUCCESSFUL_PENDING, SUCCESSFUL_ACCEPTED, SUCCESSFUL_REJECTED, SUCCESSFUL_WITHDRAWN, UNSUCCESSFUL)
 │       └── InternshipStatus.java // (PENDING, APPROVED, REJECTED, FILLED)
 │
 ├── view/                  // Presentation Layer
@@ -144,9 +144,27 @@ com.internship.system
   - `int internshipId`
   - `ApplicationStatus status`
   - `boolean withdrawalRequested`
-  - `boolean offerAccepted`
 - **Methods:**
   - Getters and setters for all attributes.
+
+#### Application Status Flow
+
+The application status follows this lifecycle:
+
+1. **PENDING** - Initial state when student submits application. Company representative has not yet reviewed it.
+
+2. **SUCCESSFUL_PENDING** - Company representative has approved the application and extended an offer. Student has not yet responded.
+
+3. **SUCCESSFUL_ACCEPTED** - Student has accepted the offer from SUCCESSFUL_PENDING status. This registers a confirmed offer.
+
+4. **SUCCESSFUL_REJECTED** - Student has rejected the offer from SUCCESSFUL_PENDING status.
+
+5. **SUCCESSFUL_WITHDRAWN** - Application has been withdrawn. This can happen when:
+   - Student withdraws an accepted offer (SUCCESSFUL_ACCEPTED) - immediately processed, revokes confirmed offer
+   - Student requests withdrawal of other statuses (PENDING, SUCCESSFUL_PENDING) - requires staff approval
+   - When staff approves any withdrawal request, the status becomes SUCCESSFUL_WITHDRAWN
+
+6. **UNSUCCESSFUL** - Company representative has rejected the application.
 
 #### `FilterCriteria`
 
@@ -244,7 +262,7 @@ com.internship.system
 - **Methods:**
   - `register(DataManager dataManager, String email, ...)`: `CompanyRepresentative` (static)
   - `createInternship(...)`: `Optional<Internship>`
-  - `viewMyInternships()`: `List<Internship>`
+  - `viewInternships()`: `List<Internship>`
   - `updateInternship(...)`: `boolean`
   - `toggleInternshipVisibility(int internshipId)`: `boolean`
   - `viewApplicationsForInternship(int internshipId)`: `List<Application>`
@@ -295,5 +313,5 @@ Each view class is responsible for displaying a specific set of menus and inform
 
 ## 6. Commands
 
-`javac -d out $(find src -name "*.java")`
-`java -cp out com.internship.system.Main`
+javac -d out $(find src -name "*.java")
+java -cp out com.internship.system.Main

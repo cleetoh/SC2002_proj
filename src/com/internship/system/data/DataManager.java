@@ -215,10 +215,28 @@ public class DataManager {
 
     private void reconcileConfirmedOffers() {
         Map<Integer, Long> acceptedCounts = applications.stream()
-                .filter(application -> application.getStatus() == ApplicationStatus.SUCCESSFUL)
-                .filter(Application::isOfferAccepted)
+                .filter(application -> application.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED)
+                .collect(Collectors.groupingBy(
+                        Application::getInternshipId,
+                        Collectors.counting()));
+
+        // For each student, check if they have exactly one SUCCESSFUL_ACCEPTED with all
+        // others withdrawn
+        // This indicates they've actually accepted (not just been offered)
+        Map<Integer, Long> confirmedCounts = applications.stream()
+                .filter(application -> application.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED)
+                .filter(application -> {
+                    List<Application> studentApps = getApplicationsForStudent(application.getStudentId());
+                    long activeCount = studentApps.stream()
+                            .filter(app -> app.getStatus() == ApplicationStatus.PENDING
+                                    || app.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED
+                                    || app.getStatus() == ApplicationStatus.SUCCESSFUL_REJECTED)
+                            .count();
+                    return activeCount == 1; // Only this application is active
+                })
                 .collect(Collectors.groupingBy(Application::getInternshipId, Collectors.counting()));
-        acceptedCounts.forEach((internshipId, count) -> findInternshipById(internshipId).ifPresent(internship -> {
+
+        confirmedCounts.forEach((internshipId, count) -> findInternshipById(internshipId).ifPresent(internship -> {
             internship.setConfirmedOffers(count.intValue());
             if (internship.getConfirmedOffers() >= internship.getSlots()) {
                 internship.setStatus(InternshipStatus.FILLED);
