@@ -21,18 +21,18 @@ public class Internship {
     private int confirmedOffers;
 
     public Internship(int internshipId,
-                      String title,
-                      String description,
-                      InternshipLevel level,
-                      String preferredMajor,
-                      LocalDate openingDate,
-                      LocalDate closingDate,
-                      InternshipStatus status,
-                      String companyName,
-                      String representativeInChargeId,
-                      int slots,
-                      boolean visible,
-                      int confirmedOffers) {
+            String title,
+            String description,
+            InternshipLevel level,
+            String preferredMajor,
+            LocalDate openingDate,
+            LocalDate closingDate,
+            InternshipStatus status,
+            String companyName,
+            String representativeInChargeId,
+            int slots,
+            boolean visible,
+            int confirmedOffers) {
         this.internshipId = internshipId;
         this.title = title;
         this.description = description;

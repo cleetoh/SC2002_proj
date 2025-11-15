@@ -2,7 +2,10 @@ package com.internship.system.model.enums;
 
 public enum ApplicationStatus {
     PENDING,
-    SUCCESSFUL,
-    UNSUCCESSFUL,
-    WITHDRAWN
+    PENDING_WITHDRAWN,
+    SUCCESSFUL_PENDING,
+    SUCCESSFUL_ACCEPTED,
+    SUCCESSFUL_REJECTED,
+    SUCCESSFUL_WITHDRAWN,
+    UNSUCCESSFUL
 }

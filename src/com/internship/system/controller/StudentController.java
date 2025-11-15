@@ -87,18 +87,17 @@ public class StudentController {
         if (!application.getStudentId().equals(currentStudent.getUserId())) {
             return false;
         }
-        if (application.getStatus() != ApplicationStatus.SUCCESSFUL) {
-            return false;
-        }
-        if (application.isOfferAccepted()) {
+        if (application.getStatus() != ApplicationStatus.SUCCESSFUL_PENDING) {
             return false;
         }
         if (hasAcceptedOffer()) {
             return false;
         }
 
-        application.setOfferAccepted(true);
+        // Change status from SUCCESSFUL_PENDING to SUCCESSFUL_ACCEPTED
+        application.setStatus(ApplicationStatus.SUCCESSFUL_ACCEPTED);
         dataManager.updateApplication(application);
+
         dataManager.findInternshipById(application.getInternshipId())
                 .ifPresent(internship -> {
                     internship.registerConfirmedOffer();
@@ -107,6 +106,26 @@ public class StudentController {
 
         withdrawOtherApplications(applicationId);
 
+        dataManager.saveAllData();
+        return true;
+    }
+
+    public boolean rejectOffer(int applicationId) {
+        Optional<Application> applicationOpt = dataManager.findApplicationById(applicationId);
+        if (applicationOpt.isEmpty()) {
+            return false;
+        }
+        Application application = applicationOpt.get();
+        if (!application.getStudentId().equals(currentStudent.getUserId())) {
+            return false;
+        }
+        if (application.getStatus() != ApplicationStatus.SUCCESSFUL_PENDING) {
+            return false;
+        }
+
+        // Change status from SUCCESSFUL_PENDING to SUCCESSFUL_REJECTED
+        application.setStatus(ApplicationStatus.SUCCESSFUL_REJECTED);
+        dataManager.updateApplication(application);
         dataManager.saveAllData();
         return true;
     }
@@ -120,10 +139,25 @@ public class StudentController {
         if (!application.getStudentId().equals(currentStudent.getUserId())) {
             return false;
         }
-        if (application.getStatus() == ApplicationStatus.WITHDRAWN) {
+
+        // Only allow withdrawal of SUCCESSFUL_ACCEPTED status
+        if (application.getStatus() != ApplicationStatus.SUCCESSFUL_ACCEPTED) {
             return false;
         }
-        application.setWithdrawalRequested(true);
+
+        // Mark as SUCCESSFUL_WITHDRAWN immediately
+        application.setStatus(ApplicationStatus.SUCCESSFUL_WITHDRAWN);
+        application.setWithdrawalRequested(false);
+
+        // Revoke the confirmed offer
+        dataManager.findInternshipById(application.getInternshipId())
+                .ifPresent(internship -> {
+                    if (internship.getConfirmedOffers() > 0) {
+                        internship.revokeConfirmedOffer();
+                        dataManager.updateInternship(internship);
+                    }
+                });
+
         dataManager.updateApplication(application);
         dataManager.saveAllData();
         return true;
@@ -157,13 +191,16 @@ public class StudentController {
     private boolean hasReachedApplicationLimit() {
         long activeApplications = viewAppliedInternships().stream()
                 .filter(application -> application.getStatus() == ApplicationStatus.PENDING
-                        || application.getStatus() == ApplicationStatus.SUCCESSFUL)
+                        || application.getStatus() == ApplicationStatus.SUCCESSFUL_PENDING
+                        || application.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED
+                        || application.getStatus() == ApplicationStatus.SUCCESSFUL_REJECTED)
                 .count();
         return activeApplications >= MAX_ACTIVE_APPLICATIONS;
     }
 
     private boolean hasAcceptedOffer() {
-        return viewAppliedInternships().stream().anyMatch(Application::isOfferAccepted);
+        return viewAppliedInternships().stream()
+                .anyMatch(app -> app.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED);
     }
 
     private void withdrawOtherApplications(int acceptedApplicationId) {
@@ -172,9 +209,13 @@ public class StudentController {
             if (application.getApplicationId() == acceptedApplicationId) {
                 continue;
             }
-            if (application.getStatus() == ApplicationStatus.PENDING
-                    || application.getStatus() == ApplicationStatus.SUCCESSFUL) {
-                application.setStatus(ApplicationStatus.WITHDRAWN);
+            if (application.getStatus() == ApplicationStatus.PENDING) {
+                application.setStatus(ApplicationStatus.PENDING_WITHDRAWN);
+                application.setWithdrawalRequested(false);
+                dataManager.updateApplication(application);
+            } else if (application.getStatus() == ApplicationStatus.SUCCESSFUL_PENDING
+                    || application.getStatus() == ApplicationStatus.SUCCESSFUL_REJECTED) {
+                application.setStatus(ApplicationStatus.SUCCESSFUL_WITHDRAWN);
                 application.setWithdrawalRequested(false);
                 dataManager.updateApplication(application);
             }

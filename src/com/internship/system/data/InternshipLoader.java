@@ -85,8 +85,7 @@ public class InternshipLoader {
                 int internshipId = parseInt(tokens.get(2), 0);
                 ApplicationStatus status = parseApplicationStatus(tokens.get(3));
                 boolean withdrawalRequested = tokens.size() > 4 && Boolean.parseBoolean(tokens.get(4));
-                boolean offerAccepted = tokens.size() > 5 && Boolean.parseBoolean(tokens.get(5));
-                applications.add(new Application(applicationId, studentId, internshipId, status, withdrawalRequested, offerAccepted));
+                applications.add(new Application(applicationId, studentId, internshipId, status, withdrawalRequested));
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load applications from " + filePath, e);
@@ -96,7 +95,8 @@ public class InternshipLoader {
 
     public void saveInternshipsToFile(String filePath, List<Internship> internships) {
         List<String> lines = new ArrayList<>();
-        lines.add("internshipId,title,description,level,preferredMajor,openingDate,closingDate,status,companyName,representativeInChargeId,slots,isVisible");
+        lines.add(
+                "internshipId,title,description,level,preferredMajor,openingDate,closingDate,status,companyName,representativeInChargeId,slots,isVisible");
         for (Internship internship : internships) {
             List<String> values = new ArrayList<>();
             values.add(String.valueOf(internship.getInternshipId()));
@@ -118,7 +118,7 @@ public class InternshipLoader {
 
     public void saveApplicationsToFile(String filePath, List<Application> applications) {
         List<String> lines = new ArrayList<>();
-        lines.add("applicationId,studentId,internshipId,status,withdrawalRequested,offerAccepted");
+        lines.add("applicationId,studentId,internshipId,status,withdrawalRequested");
         for (Application application : applications) {
             List<String> values = new ArrayList<>();
             values.add(String.valueOf(application.getApplicationId()));
@@ -126,7 +126,6 @@ public class InternshipLoader {
             values.add(String.valueOf(application.getInternshipId()));
             values.add(application.getStatus().name());
             values.add(String.valueOf(application.isWithdrawalRequested()));
-            values.add(String.valueOf(application.isOfferAccepted()));
             lines.add(CsvUtils.toLine(values));
         }
         writeLines(filePath, lines);

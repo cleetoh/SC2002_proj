@@ -105,13 +105,19 @@ public class StaffController {
         }
 
         if (approve) {
-            application.setStatus(ApplicationStatus.WITHDRAWN);
-            if (application.isOfferAccepted()) {
-                application.setOfferAccepted(false);
+            ApplicationStatus oldStatus = application.getStatus();
+
+            // Mark as SUCCESSFUL_WITHDRAWN
+            application.setStatus(ApplicationStatus.SUCCESSFUL_WITHDRAWN);
+
+            // If student had accepted an offer, revoke the confirmed offer
+            if (oldStatus == ApplicationStatus.SUCCESSFUL_ACCEPTED) {
                 dataManager.findInternshipById(application.getInternshipId())
                         .ifPresent(internship -> {
-                            internship.revokeConfirmedOffer();
-                            dataManager.updateInternship(internship);
+                            if (internship.getConfirmedOffers() > 0) {
+                                internship.revokeConfirmedOffer();
+                                dataManager.updateInternship(internship);
+                            }
                         });
             }
         }
