@@ -5,12 +5,10 @@ import com.internship.system.model.user.CareerCenterStaff;
 import com.internship.system.model.user.CompanyRepresentative;
 import com.internship.system.model.user.Student;
 import com.internship.system.model.user.User;
-import com.internship.system.util.ConsoleInput;
 import com.internship.system.view.CompanyView;
 import com.internship.system.view.MainMenuView;
 import com.internship.system.view.StaffView;
 import com.internship.system.view.StudentView;
-
 import java.util.Optional;
 
 public class AppController {
@@ -48,17 +46,72 @@ public class AppController {
 
     private void handleLogin() {
         String userId = mainMenuView.promptForUserId();
-        String password = mainMenuView.promptForPassword();
-        Optional<User> userOptional = authController.login(userId, password);
-        if (userOptional.isEmpty()) {
-            mainMenuView.displayLoginFailure();
+        Optional<User> userOpt = authController.findUserById(userId);
+
+        if (userOpt.isEmpty()) {
+            mainMenuView.displayUserNotFound(userId);
             return;
         }
-        User user = userOptional.get();
-        mainMenuView.displayLoginSuccess(user);
-        dispatchUserSession(user);
-        authController.logout();
+
+        User user = userOpt.get();
+
+        if (user instanceof CompanyRepresentative representative && !representative.isApproved()) {
+            mainMenuView.displayAccountNotApproved();
+            return;
+        }
+
+        boolean keepTrying = true;
+
+        while (keepTrying) {
+            String password = mainMenuView.promptForPassword();
+
+            if (user.getPassword().equals(password)) {
+                Optional<User> loggedInOpt = authController.login(userId, password);
+
+                if (loggedInOpt.isEmpty()) {
+                    mainMenuView.displayLoginFailure();
+                } else {
+                    User loggedUser = loggedInOpt.get();
+                    mainMenuView.displayLoginSuccess(loggedUser);
+                    dispatchUserSession(loggedUser);
+                    authController.logout();
+                }
+
+                keepTrying = false;
+
+            } else {
+                mainMenuView.displayWrongPassword();
+                mainMenuView.displayPasswordRetryMenu();
+                int choice = mainMenuView.promptForPasswordRetrySelection();
+
+                switch (choice) {
+                    case 1: { 
+                        Optional<String> tempPasswordOpt = authController.resetPassword(userId);
+                        if (tempPasswordOpt.isPresent()) {
+                            mainMenuView.displayTemporaryPassword(tempPasswordOpt.get());
+                        } else {
+                            mainMenuView.displayLoginFailure();
+                        }
+                        keepTrying = false; 
+                        break;
+                    }
+                    case 2: {
+                        break;
+                    }
+                    case 3: {
+                        keepTrying = false;
+                        break;
+                    }
+                    default: {
+                        System.out.println("Invalid option. Returning to main menu.");
+                        keepTrying = false;
+                        break;
+                    }
+                }
+            }
+        }
     }
+
 
     private void handleRegistration() {
         String email = mainMenuView.promptForEmail();
