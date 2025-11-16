@@ -227,7 +227,22 @@ The application status follows this lifecycle:
   - `MainMenuView mainMenuView`
   - `AuthController authController`
 - **Methods:**
-  - `run()`: `void` - Starts the main application loop, handles login/registration, and directs to the appropriate user menu.
+  - `run()`: `void`  
+    Starts the main application loop. Loads data, displays the splash screen and main menu, and triggers the login/registration flow.
+
+  - `handleLogin()`: `void`  
+    Manages the full login and password-handling process:
+    - Prompts for user ID and checks if the user exists.
+    - If the user is a `CompanyRepresentative` whose account is not yet approved, the system prevents login and displays an “account not approved” message.
+    - Prompts for password inside a retry loop:
+      - If the password is correct, calls `authController.login(...)` and dispatches the session to the appropriate controller (Student, Company Representative, or Staff).
+      - If the password is incorrect, displays a retry menu with three options:
+        1. Reset password  
+        2. Try again  
+        3. Back to main menu  
+      - On **Reset password**, calls `authController.resetPassword(userId)`, displays the generated temporary password, and returns to the main menu.
+      - On **Try again**, re-prompts for password within the same loop.
+      - On **Back to main menu**, exits the login flow and returns to the main menu.
 
 #### `AuthController`
 
@@ -235,10 +250,18 @@ The application status follows this lifecycle:
   - `User currentUser`
   - `DataManager dataManager`
 - **Methods:**
-  - `login(String userId, String password)`: `Optional<User>`
-  - `logout()`: `void`
-  - `getCurrentUser()`: `Optional<User>`
-  - `changePassword(User user, String newPassword)`: `boolean`
+  - `login(String userId, String password)`: `Optional<User>`  
+    Authenticates a user by ID and password. Company representatives must be approved before they can log in.
+  - `logout()`: `void`  
+    Clears the current user session.
+  - `getCurrentUser()`: `Optional<User>`  
+    Returns the currently logged-in user, if any.
+  - `changePassword(User user, String newPassword)`: `boolean`  
+    Validates and updates the user's password, and persists the change via `DataManager`.
+  - `resetPassword(String userId)`: `Optional<String>`  
+    Generates an 8-character temporary password using a UUID, updates the user's password, and returns the temporary password so it can be displayed to the user.
+  - `findUserById(String userId)`: `Optional<User>`  
+    Convenience method used by the login and password reset flow to look up users by ID.
 
 #### `StudentController`
 
