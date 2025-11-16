@@ -39,6 +39,7 @@ public class StudentController {
                 .filter(Internship::hasAvailableSlots)
                 .filter(internship -> internship.isOpenOn(today))
                 .filter(this::isLevelEligible)
+                .filter(this::isMajorEligible)
                 .sorted((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()))
                 .collect(Collectors.toList());
     }
@@ -176,7 +177,10 @@ public class StudentController {
         if (!internship.isOpenOn(LocalDate.now())) {
             return false;
         }
-        return isLevelEligible(internship);
+        if (!isLevelEligible(internship)) {
+            return false;
+        }
+        return isMajorEligible(internship);
     }
 
     private boolean isLevelEligible(Internship internship) {
@@ -186,6 +190,12 @@ public class StudentController {
             return level == InternshipLevel.BASIC;
         }
         return true;
+    }
+
+    private boolean isMajorEligible(Internship internship) {
+        String studentMajor = currentStudent.getMajor();
+        String preferredMajor = internship.getPreferredMajor();
+        return preferredMajor != null && preferredMajor.equalsIgnoreCase(studentMajor);
     }
 
     private boolean hasReachedApplicationLimit() {

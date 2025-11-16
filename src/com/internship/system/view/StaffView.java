@@ -28,6 +28,12 @@ public class StaffView {
     public void run() {
         boolean running = true;
         while (running) {
+            // Check if user is still logged in (may have been logged out after password
+            // change)
+            if (authController.getCurrentUser().isEmpty()) {
+                running = false;
+                break;
+            }
             displayMenu();
             int choice = ConsoleInput.readInt("Select an option: ");
             switch (choice) {
@@ -36,7 +42,13 @@ public class StaffView {
                 case 3 -> handleManageWithdrawalRequests();
                 case 4 -> handleGenerateReport();
                 case 5 -> handleSetFilters();
-                case 6 -> handleChangePassword();
+                case 6 -> {
+                    handleChangePassword();
+                    // If password was changed successfully, logout occurred - exit the loop
+                    if (authController.getCurrentUser().isEmpty()) {
+                        running = false;
+                    }
+                }
                 case 7 -> running = false;
                 default -> System.out.println("Invalid option. Please try again.");
             }
@@ -391,6 +403,8 @@ public class StaffView {
 
         String major = ConsoleInput.readLine("Filter by Preferred Major: ");
 
+        String company = ConsoleInput.readLine("Filter by Company Name: ");
+
         String dateStr = ConsoleInput.readLine("Closing Date Before (YYYY-MM-DD): ");
         LocalDate closingDate = null;
         if (!dateStr.isEmpty()) {
@@ -415,6 +429,7 @@ public class StaffView {
                 .status(status)
                 .level(level)
                 .preferredMajor(major.isEmpty() ? null : major)
+                .companyName(company.isEmpty() ? null : company)
                 .closingDateBefore(closingDate)
                 .visibleOnly(visibleOnly)
                 .build();
@@ -436,7 +451,8 @@ public class StaffView {
         boolean success = authController.changePassword(staffController.getCurrentStaff(), newPassword);
         System.out.println();
         if (success) {
-            System.out.println("Password updated successfully.");
+            System.out.println("Password updated successfully. Please login again with your new password.");
+            authController.logout();
         } else {
             System.out.println("Password update failed. Please provide a non-empty value.");
         }

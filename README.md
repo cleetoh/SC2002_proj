@@ -40,7 +40,7 @@ com.internship.system
 │   ├── FilterCriteria.java// Represents filtering criteria for reports
 │   └── enums/             // Enumerations for fixed sets of values
 │       ├── InternshipLevel.java  // (BASIC, INTERMEDIATE, ADVANCED)
-│       ├── ApplicationStatus.java // (PENDING, SUCCESSFUL_PENDING, SUCCESSFUL_ACCEPTED, SUCCESSFUL_REJECTED, SUCCESSFUL_WITHDRAWN, UNSUCCESSFUL)
+│       ├── ApplicationStatus.java // (PENDING, PENDING_WITHDRAWN, SUCCESSFUL_PENDING, SUCCESSFUL_ACCEPTED, SUCCESSFUL_REJECTED, SUCCESSFUL_WITHDRAWN, UNSUCCESSFUL)
 │       └── InternshipStatus.java // (PENDING, APPROVED, REJECTED, FILLED)
 │
 ├── view/                  // Presentation Layer
@@ -159,12 +159,14 @@ The application status follows this lifecycle:
 
 4. **SUCCESSFUL_REJECTED** - Student has rejected the offer from SUCCESSFUL_PENDING status.
 
-5. **SUCCESSFUL_WITHDRAWN** - Application has been withdrawn. This can happen when:
-   - Student withdraws an accepted offer (SUCCESSFUL_ACCEPTED) - immediately processed, revokes confirmed offer
-   - Student requests withdrawal of other statuses (PENDING, SUCCESSFUL_PENDING) - requires staff approval
-   - When staff approves any withdrawal request, the status becomes SUCCESSFUL_WITHDRAWN
+5. **PENDING_WITHDRAWN** - PENDING application has been withdrawn (typically when student accepts another offer).
 
-6. **UNSUCCESSFUL** - Company representative has rejected the application.
+6. **SUCCESSFUL_WITHDRAWN** - Application has been withdrawn. This can happen when:
+
+   - Student withdraws an accepted offer (SUCCESSFUL_ACCEPTED) - immediately processed, revokes confirmed offer
+   - When staff approves withdrawal requests for applications in various statuses
+
+7. **UNSUCCESSFUL** - Company representative has rejected the application.
 
 #### `FilterCriteria`
 
@@ -173,6 +175,7 @@ The application status follows this lifecycle:
   - `InternshipStatus status`
   - `InternshipLevel level`
   - `String preferredMajor`
+  - `String companyName`
   - `LocalDate closingDateBefore`
   - `Boolean visibleOnly`
 - **Methods:**
@@ -227,6 +230,7 @@ The application status follows this lifecycle:
   - `MainMenuView mainMenuView`
   - `AuthController authController`
 - **Methods:**
+
   - `run()`: `void`  
     Starts the main application loop. Loads data, displays the splash screen and main menu, and triggers the login/registration flow.
 
@@ -237,9 +241,9 @@ The application status follows this lifecycle:
     - Prompts for password inside a retry loop:
       - If the password is correct, calls `authController.login(...)` and dispatches the session to the appropriate controller (Student, Company Representative, or Staff).
       - If the password is incorrect, displays a retry menu with three options:
-        1. Reset password  
-        2. Try again  
-        3. Back to main menu  
+        1. Reset password
+        2. Try again
+        3. Back to main menu
       - On **Reset password**, calls `authController.resetPassword(userId)`, displays the generated temporary password, and returns to the main menu.
       - On **Try again**, re-prompts for password within the same loop.
       - On **Back to main menu**, exits the login flow and returns to the main menu.
@@ -257,7 +261,7 @@ The application status follows this lifecycle:
   - `getCurrentUser()`: `Optional<User>`  
     Returns the currently logged-in user, if any.
   - `changePassword(User user, String newPassword)`: `boolean`  
-    Validates and updates the user's password, and persists the change via `DataManager`.
+    Validates and updates the user's password, and persists the change via `DataManager`. After successful password change, the user should be logged out and prompted to log in again with the new password.
   - `resetPassword(String userId)`: `Optional<String>`  
     Generates an 8-character temporary password using a UUID, updates the user's password, and returns the temporary password so it can be displayed to the user.
   - `findUserById(String userId)`: `Optional<User>`  
@@ -270,10 +274,15 @@ The application status follows this lifecycle:
   - `Student currentStudent`
   - `DataManager dataManager`
 - **Methods:**
-  - `getVisibleInternships()`: `List<Internship>`
-  - `applyForInternship(int internshipId)`: `boolean`
+  - `getVisibleInternships(FilterCriteria criteria)`: `List<Internship>`  
+    Returns internships visible to the student based on their profile (year of study, major), visibility settings, and filter criteria. Only shows internships matching the student's major and appropriate level for their year of study.
+  - `applyForInternship(int internshipId)`: `boolean`  
+    Validates eligibility (major match, level eligibility, visibility, available slots) before allowing application.
   - `viewAppliedInternships()`: `List<Application>`
-  - `acceptOffer(int applicationId)`: `boolean`
+  - `acceptOffer(int applicationId)`: `boolean`  
+    Accepts an offer and automatically withdraws all other pending applications.
+  - `rejectOffer(int applicationId)`: `boolean`  
+    Rejects an offer from SUCCESSFUL_PENDING status.
   - `withdrawApplication(int applicationId)`: `boolean`
 
 #### `CompanyController`
@@ -284,12 +293,22 @@ The application status follows this lifecycle:
   - `DataManager dataManager`
 - **Methods:**
   - `register(DataManager dataManager, String email, ...)`: `CompanyRepresentative` (static)
-  - `createInternship(...)`: `Optional<Internship>`
+  - `getInternships(FilterCriteria criteria)`: `List<Internship>`  
+    Returns internships filtered by company name and criteria. Company representatives can always view their own internships regardless of visibility settings.
+  - `canCreateMoreInternships()`: `boolean`  
+    Checks if the representative has reached the maximum limit (5 internships).
+  - `createInternship(...)`: `Optional<Internship>`  
+    Creates a new internship with validation (max 5 per rep, slots 1-10, required fields). Returns empty if validation fails.
   - `viewInternships()`: `List<Internship>`
-  - `updateInternship(...)`: `boolean`
-  - `toggleInternshipVisibility(int internshipId)`: `boolean`
+  - `updateInternship(...)`: `boolean`  
+    Updates internship details. Only allowed for PENDING internships. Resets status to PENDING and visibility to false.
+  - `deleteInternship(int internshipId)`: `boolean`  
+    Deletes an internship. Only allowed for PENDING internships.
+  - `toggleInternshipVisibility(int internshipId)`: `boolean`  
+    Toggles visibility of an APPROVED internship.
   - `viewApplicationsForInternship(int internshipId)`: `List<Application>`
-  - `processApplication(int applicationId, ApplicationStatus newStatus)`: `boolean`
+  - `processApplication(int applicationId, ApplicationStatus newStatus)`: `boolean`  
+    Processes applications (approve/reject). Validates slot availability before approving.
 
 #### `StaffController`
 
@@ -305,8 +324,10 @@ The application status follows this lifecycle:
   - `rejectInternship(int internshipId)`: `boolean`
   - `viewPendingInternships()`: `List<Internship>`
   - `getPendingWithdrawalRequests()`: `List<Application>`
-  - `processWithdrawalRequest(int applicationId, boolean approve)`: `boolean`
-  - `generateReport(FilterCriteria criteria)`: `List<Internship>`
+  - `processWithdrawalRequest(int applicationId, boolean approve)`: `boolean`  
+    Processes withdrawal requests. When approved, updates application status and revokes confirmed offers if applicable, updating slot availability.
+  - `generateReport(FilterCriteria criteria)`: `List<Internship>`  
+    Generates filtered reports. Supports filtering by status, level, preferred major, company name, closing date, and visibility.
 
 ### View Package (`com.internship.system.view`)
 
@@ -336,5 +357,5 @@ Each view class is responsible for displaying a specific set of menus and inform
 
 ## 6. Commands
 
-javac -d out $(find src -name "*.java")
+javac -d out $(find src -name "\*.java")
 java -cp out com.internship.system.Main

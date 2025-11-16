@@ -32,6 +32,12 @@ public class CompanyView {
     public void run() {
         boolean running = true;
         while (running) {
+            // Check if user is still logged in (may have been logged out after password
+            // change)
+            if (authController.getCurrentUser().isEmpty()) {
+                running = false;
+                break;
+            }
             displayMenu();
             int choice = ConsoleInput.readInt("Select an option: ");
             switch (choice) {
@@ -39,7 +45,13 @@ public class CompanyView {
                 case 2 -> handleCreateInternship();
                 case 3 -> handleManageApplications();
                 case 4 -> handleSetFilters();
-                case 5 -> handleChangePassword();
+                case 5 -> {
+                    handleChangePassword();
+                    // If password was changed successfully, logout occurred - exit the loop
+                    if (authController.getCurrentUser().isEmpty()) {
+                        running = false;
+                    }
+                }
                 case 6 -> running = false;
                 default -> System.out.println("Invalid option. Please try again.");
             }
@@ -117,6 +129,7 @@ public class CompanyView {
             System.out.println();
             System.out.println("1. Update Internship Details");
             System.out.println("2. Toggle Visibility");
+            System.out.println("3. Delete Internship");
             System.out.println();
             String actionInput = ConsoleInput.readLine("Select action (or press Enter to cancel): ");
             if (actionInput.isBlank()) {
@@ -135,6 +148,7 @@ public class CompanyView {
             switch (choice) {
                 case 1 -> handleUpdateInternshipDetails(internshipId);
                 case 2 -> handleToggleVisibilityForId(internshipId, internships);
+                case 3 -> handleDeleteInternship(internshipId, internships);
                 default -> System.out.println("Invalid option. Operation cancelled.");
             }
         }
@@ -155,7 +169,8 @@ public class CompanyView {
         if (success) {
             System.out.println("Internship updated successfully.");
         } else {
-            System.out.println("Failed to update internship. Ensure it exists, belongs to you, and is not filled.");
+            System.out.println(
+                    "Failed to update internship. Ensure it exists, belongs to you, is in PENDING status, and has valid data.");
         }
         System.out.println();
     }
@@ -182,6 +197,37 @@ public class CompanyView {
         } else {
             System.out.println("Unable to toggle visibility. Ensure internship ID" + internshipId
                     + " is approved and owned by you.");
+        }
+        System.out.println();
+    }
+
+    private void handleDeleteInternship(int internshipId, List<Internship> internships) {
+        // Find the internship to check its status
+        Internship internship = internships.stream()
+                .filter(i -> i.getInternshipId() == internshipId)
+                .findFirst()
+                .orElse(null);
+
+        if (internship == null) {
+            System.out.println("Unable to find internship.");
+            return;
+        }
+
+        System.out.println();
+        String confirm = ConsoleInput.readLine("Are you sure you want to delete this internship? (yes/no): ");
+        if (!confirm.equalsIgnoreCase("yes")) {
+            System.out.println("Deletion cancelled.");
+            System.out.println();
+            return;
+        }
+
+        boolean success = companyController.deleteInternship(internshipId);
+        System.out.println();
+        if (success) {
+            System.out.println("Internship deleted successfully.");
+        } else {
+            System.out.println(
+                    "Failed to delete internship. Ensure it exists, belongs to you, and is in PENDING status.");
         }
         System.out.println();
     }
@@ -386,7 +432,8 @@ public class CompanyView {
         boolean success = authController.changePassword(companyController.getCurrentRep(), newPassword);
         System.out.println();
         if (success) {
-            System.out.println("Password updated successfully.");
+            System.out.println("Password updated successfully. Please login again with your new password.");
+            authController.logout();
         } else {
             System.out.println("Password update failed. Please provide a non-empty value.");
         }

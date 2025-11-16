@@ -77,6 +77,19 @@ public class CompanyController {
         if (slots <= 0 || slots > MAX_SLOTS) {
             return Optional.empty();
         }
+        // Validate required fields
+        if (title == null || title.isBlank()) {
+            return Optional.empty();
+        }
+        if (description == null || description.isBlank()) {
+            return Optional.empty();
+        }
+        if (preferredMajor == null || preferredMajor.isBlank()) {
+            return Optional.empty();
+        }
+        if (level == null) {
+            return Optional.empty();
+        }
 
         int internshipId = dataManager.nextInternshipId();
         Internship internship = new Internship(internshipId,
@@ -116,10 +129,25 @@ public class CompanyController {
             return false;
         }
         Internship internship = internshipOpt.get();
-        if (internship.getStatus() == InternshipStatus.FILLED) {
+        // Cannot edit if status is APPROVED, REJECTED, or FILLED - only PENDING
+        // internships can be edited
+        if (internship.getStatus() != InternshipStatus.PENDING) {
             return false;
         }
         if (slots <= 0 || slots > MAX_SLOTS) {
+            return false;
+        }
+        // Validate required fields
+        if (title == null || title.isBlank()) {
+            return false;
+        }
+        if (description == null || description.isBlank()) {
+            return false;
+        }
+        if (preferredMajor == null || preferredMajor.isBlank()) {
+            return false;
+        }
+        if (level == null) {
             return false;
         }
         internship.setTitle(title);
@@ -201,6 +229,21 @@ public class CompanyController {
 
         dataManager.updateApplication(application);
         dataManager.updateInternship(internship);
+        dataManager.saveAllData();
+        return true;
+    }
+
+    public boolean deleteInternship(int internshipId) {
+        Optional<Internship> internshipOpt = ensureOwnership(internshipId);
+        if (internshipOpt.isEmpty()) {
+            return false;
+        }
+        Internship internship = internshipOpt.get();
+        // Only allow deletion of PENDING internships
+        if (internship.getStatus() != InternshipStatus.PENDING) {
+            return false;
+        }
+        dataManager.removeInternship(internshipId);
         dataManager.saveAllData();
         return true;
     }

@@ -10,6 +10,7 @@ public class FilterCriteria {
     private final InternshipStatus status;
     private final InternshipLevel level;
     private final String preferredMajor;
+    private final String companyName;
     private final LocalDate closingDateBefore;
     private final Boolean visibleOnly;
 
@@ -17,6 +18,7 @@ public class FilterCriteria {
         this.status = builder.status;
         this.level = builder.level;
         this.preferredMajor = builder.preferredMajor;
+        this.companyName = builder.companyName;
         this.closingDateBefore = builder.closingDateBefore;
         this.visibleOnly = builder.visibleOnly;
     }
@@ -41,6 +43,10 @@ public class FilterCriteria {
         return Optional.ofNullable(visibleOnly);
     }
 
+    public Optional<String> getCompanyName() {
+        return Optional.ofNullable(companyName);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -49,6 +55,7 @@ public class FilterCriteria {
         private InternshipStatus status;
         private InternshipLevel level;
         private String preferredMajor;
+        private String companyName;
         private LocalDate closingDateBefore;
         private Boolean visibleOnly;
 
@@ -64,6 +71,11 @@ public class FilterCriteria {
 
         public Builder preferredMajor(String preferredMajor) {
             this.preferredMajor = preferredMajor;
+            return this;
+        }
+
+        public Builder companyName(String companyName) {
+            this.companyName = companyName;
             return this;
         }
 

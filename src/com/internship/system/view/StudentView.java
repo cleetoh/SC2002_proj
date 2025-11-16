@@ -27,13 +27,24 @@ public class StudentView {
     public void run() {
         boolean running = true;
         while (running) {
+            // Check if user is still logged in (may have been logged out after password change)
+            if (authController.getCurrentUser().isEmpty()) {
+                running = false;
+                break;
+            }
             displayMenu();
             int choice = ConsoleInput.readInt("Select an option: ");
             switch (choice) {
                 case 1 -> handleBrowseAndApply();
                 case 2 -> handleManageApplications();
                 case 3 -> handleSetFilters();
-                case 4 -> handleChangePassword();
+                case 4 -> {
+                    handleChangePassword();
+                    // If password was changed successfully, logout occurred - exit the loop
+                    if (authController.getCurrentUser().isEmpty()) {
+                        running = false;
+                    }
+                }
                 case 5 -> running = false;
                 default -> System.out.println("Invalid option. Please try again.");
             }
@@ -310,7 +321,8 @@ public class StudentView {
         boolean success = authController.changePassword(studentController.getCurrentStudent(), newPassword);
         System.out.println();
         if (success) {
-            System.out.println("Password updated successfully.");
+            System.out.println("Password updated successfully. Please login again with your new password.");
+            authController.logout();
         } else {
             System.out.println("Password update failed. Please provide a non-empty value.");
         }

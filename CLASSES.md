@@ -68,6 +68,7 @@ CompanyController
 +createInternship(title: String, description: String, level: InternshipLevel, preferredMajor: String, openingDate: LocalDate, closingDate: LocalDate, slots: int): Optional<Internship>
 +viewInternships(): List<Internship>
 +updateInternship(internshipId: int, title: String, description: String, level: InternshipLevel, preferredMajor: String, openingDate: LocalDate, closingDate: LocalDate, slots: int): boolean
++deleteInternship(internshipId: int): boolean
 +toggleInternshipVisibility(internshipId: int): boolean
 +viewApplicationsForInternship(internshipId: int): List<Application>
 +processApplication(applicationId: int, newStatus: ApplicationStatus): boolean
@@ -118,6 +119,7 @@ StudentController
 +withdrawApplication(applicationId: int): boolean
 -canApplyToInternship(internship: Internship): boolean
 -isLevelEligible(internship: Internship): boolean
+-isMajorEligible(internship: Internship): boolean
 -hasReachedApplicationLimit(): boolean
 -hasAcceptedOffer(): boolean
 -withdrawOtherApplications(acceptedApplicationId: int): void
@@ -261,6 +263,7 @@ FilterCriteria
 -status: InternshipStatus
 -level: InternshipLevel
 -preferredMajor: String
+-companyName: String
 -closingDateBefore: LocalDate
 -visibleOnly: Boolean
 ---
@@ -268,6 +271,7 @@ FilterCriteria
 +getStatus(): Optional<InternshipStatus>
 +getLevel(): Optional<InternshipLevel>
 +getPreferredMajor(): Optional<String>
++getCompanyName(): Optional<String>
 +getClosingDateBefore(): Optional<LocalDate>
 +getVisibleOnly(): Optional<Boolean>
 +{static} builder(): Builder
@@ -283,12 +287,14 @@ FilterCriteria.Builder
 -status: InternshipStatus
 -level: InternshipLevel
 -preferredMajor: String
+-companyName: String
 -closingDateBefore: LocalDate
 -visibleOnly: Boolean
 ---
 +status(status: InternshipStatus): Builder
 +level(level: InternshipLevel): Builder
 +preferredMajor(preferredMajor: String): Builder
++companyName(companyName: String): Builder
 +closingDateBefore(closingDateBefore: LocalDate): Builder
 +visibleOnly(visibleOnly: Boolean): Builder
 +build(): FilterCriteria
@@ -530,6 +536,7 @@ CompanyView
 -handleManageInternships(): void
 -handleUpdateInternshipDetails(internshipId: int): void
 -handleToggleVisibilityForId(internshipId: int, internships: List<Internship>): void
+-handleDeleteInternship(internshipId: int, internships: List<Internship>): void
 -handleSetFilters(): void
 -handleCreateInternship(): void
 -handleManageApplications(): void
