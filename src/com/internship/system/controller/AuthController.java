@@ -5,8 +5,8 @@ import com.internship.system.model.user.CareerCenterStaff;
 import com.internship.system.model.user.CompanyRepresentative;
 import com.internship.system.model.user.Student;
 import com.internship.system.model.user.User;
-
 import java.util.Optional;
+import java.util.UUID; 
 
 public class AuthController {
     private final DataManager dataManager;
@@ -52,7 +52,27 @@ public class AuthController {
         return true;
     }
 
-    private Optional<User> findUserById(String userId) {
+    public Optional<String> resetPassword(String userId) {
+        Optional<User> userOptional = findUserById(userId);
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        User user = userOptional.get();
+        String tempPassword = generateTemporaryPassword();
+        user.setPassword(tempPassword);
+        //dataManager.saveAllData();
+        user.setPassword(tempPassword);
+
+        return Optional.of(tempPassword);
+    }
+
+    private String generateTemporaryPassword() {
+        String raw = UUID.randomUUID().toString().replace("-", "");
+        return raw.substring(0, 8);
+    }
+
+    public Optional<User> findUserById(String userId) {
         Optional<Student> student = dataManager.findStudentById(userId);
         if (student.isPresent()) {
             return student.map(s -> (User) s);
