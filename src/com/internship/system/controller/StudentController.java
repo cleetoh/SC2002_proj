@@ -146,19 +146,13 @@ public class StudentController {
             return false;
         }
 
-        // Mark as SUCCESSFUL_WITHDRAWN immediately
-        application.setStatus(ApplicationStatus.SUCCESSFUL_WITHDRAWN);
-        application.setWithdrawalRequested(false);
+        // Check if withdrawal is already requested
+        if (application.isWithdrawalRequested()) {
+            return false;
+        }
 
-        // Revoke the confirmed offer
-        dataManager.findInternshipById(application.getInternshipId())
-                .ifPresent(internship -> {
-                    if (internship.getConfirmedOffers() > 0) {
-                        internship.revokeConfirmedOffer();
-                        dataManager.updateInternship(internship);
-                    }
-                });
-
+        // Request withdrawal - status remains SUCCESSFUL_ACCEPTED until staff approval
+        application.setWithdrawalRequested(true);
         dataManager.updateApplication(application);
         dataManager.saveAllData();
         return true;

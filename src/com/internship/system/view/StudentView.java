@@ -27,7 +27,8 @@ public class StudentView {
     public void run() {
         boolean running = true;
         while (running) {
-            // Check if user is still logged in (may have been logged out after password change)
+            // Check if user is still logged in (may have been logged out after password
+            // change)
             if (authController.getCurrentUser().isEmpty()) {
                 running = false;
                 break;
@@ -227,7 +228,8 @@ public class StudentView {
             // Show context-aware actions based on application status
             ApplicationStatus status = selectedApplication.getStatus();
             boolean canAcceptRejectOffer = status == ApplicationStatus.SUCCESSFUL_PENDING;
-            boolean canWithdraw = status == ApplicationStatus.SUCCESSFUL_ACCEPTED;
+            boolean canWithdraw = status == ApplicationStatus.SUCCESSFUL_ACCEPTED
+                    && !selectedApplication.isWithdrawalRequested();
 
             if (!canAcceptRejectOffer && !canWithdraw) {
                 System.out.println();
@@ -292,11 +294,7 @@ public class StudentView {
             } else if (choice == withdrawOption) {
                 boolean success = studentController.withdrawApplication(applicationId);
                 if (success) {
-                    if (selectedApplication.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED) {
-                        System.out.println("Accepted offer withdrawn successfully.");
-                    } else {
-                        System.out.println("Withdrawal request submitted. Await staff approval.");
-                    }
+                    System.out.println("Withdrawal request submitted. Await staff approval.");
                 } else {
                     System.out.println(
                             "Unable to request withdrawal. Ensure the application exists and is not already withdrawn.");
