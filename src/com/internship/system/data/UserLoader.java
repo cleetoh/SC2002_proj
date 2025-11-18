@@ -4,7 +4,9 @@ import com.internship.system.model.user.CareerCenterStaff;
 import com.internship.system.model.user.CompanyRepresentative;
 import com.internship.system.model.user.Student;
 import com.internship.system.util.CsvUtils;
+import com.internship.system.util.PasswordValidator;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +22,7 @@ public class UserLoader {
         if (!Files.exists(path)) {
             return Collections.emptyList();
         }
-
+    
         List<Student> students = new ArrayList<>();
         try {
             List<String> lines = Files.readAllLines(path);
@@ -29,42 +31,24 @@ public class UserLoader {
                 if (tokens.size() < 4) {
                     continue;
                 }
+    
                 String studentId = tokens.get(0);
                 String name = tokens.get(1);
                 String major = tokens.get(2);
-                int year = parseInt(tokens.get(3), 1);
-                students.add(new Student(studentId, name, DEFAULT_PASSWORD, year, major));
+                int year = parseInt(tokens.get(3), 1);  
+                String password = (tokens.size() > 5 && !tokens.get(5).isBlank()) 
+                    ? tokens.get(5) 
+                    : PasswordValidator.getDefaultPassword();
+    
+                students.add(new Student(studentId, name, password, year, major));
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load students from " + filePath, e);
+            e.printStackTrace();
         }
         return students;
     }
+    
 
-    public List<CareerCenterStaff> loadStaffFromFile(String filePath) {
-        Path path = Path.of(filePath);
-        if (!Files.exists(path)) {
-            return Collections.emptyList();
-        }
-
-        List<CareerCenterStaff> staff = new ArrayList<>();
-        try {
-            List<String> lines = Files.readAllLines(path);
-            for (int i = 1; i < lines.size(); i++) {
-                List<String> tokens = CsvUtils.parseLine(lines.get(i));
-                if (tokens.size() < 4) {
-                    continue;
-                }
-                String staffId = tokens.get(0);
-                String name = tokens.get(1);
-                String department = tokens.get(3);
-                staff.add(new CareerCenterStaff(staffId, name, DEFAULT_PASSWORD, department));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load staff from " + filePath, e);
-        }
-        return staff;
-    }
 
     public List<CompanyRepresentative> loadCompanyRepsFromFile(String filePath) {
         Path path = Path.of(filePath);
@@ -80,31 +64,71 @@ public class UserLoader {
                 if (tokens.size() < 6) {
                     continue;
                 }
+
                 String repId = tokens.get(0);
                 String name = tokens.get(1);
                 String companyName = tokens.get(2);
                 String department = tokens.get(3);
                 String position = tokens.get(4);
-                boolean approved = tokens.size() > 6 && tokens.get(6).trim().equalsIgnoreCase("approved");
-                reps.add(new CompanyRepresentative(repId, name, DEFAULT_PASSWORD, companyName, department, position,
-                        approved));
+                String status = tokens.size() > 6 ? tokens.get(6).toLowerCase() : "pending";
+                boolean approved = status.contains("approved");
+                String password = (tokens.size() > 7 && !tokens.get(7).isBlank()) 
+                    ? tokens.get(7) 
+                    : PasswordValidator.getDefaultPassword();
+
+                reps.add(new CompanyRepresentative(repId, name, password, companyName, department, position, approved));
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load company representatives from " + filePath, e);
+            e.printStackTrace();
         }
         return reps;
     }
 
+
+    public List<CareerCenterStaff> loadStaffFromFile(String filePath) {
+        Path path = Path.of(filePath);
+        if (!Files.exists(path)) {
+            return Collections.emptyList();
+        }
+    
+        List<CareerCenterStaff> staff = new ArrayList<>();
+        try {
+            List<String> lines = Files.readAllLines(path);
+            for (int i = 1; i < lines.size(); i++) {
+                List<String> tokens = CsvUtils.parseLine(lines.get(i));
+                if (tokens.size() < 4) {
+                    continue;
+                }
+    
+                String staffId = tokens.get(0);
+                String name = tokens.get(1);
+                String role = tokens.get(2);
+                String department = tokens.get(3);
+                String password = (tokens.size() > 5 && !tokens.get(5).isBlank()) 
+                    ? tokens.get(5) 
+                    : PasswordValidator.getDefaultPassword();
+    
+                staff.add(new CareerCenterStaff(staffId, name, password, department));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return staff;
+    }
+    
+    
+
     public void saveStudentsToFile(String filePath, List<Student> students) {
         List<String> lines = new ArrayList<>();
-        lines.add("StudentID,Name,Major,Year,Email");
+        lines.add("StudentID,Name,Major,YearOfStudy,Email,Password"); 
         for (Student student : students) {
             List<String> values = new ArrayList<>();
             values.add(student.getUserId());
             values.add(student.getName());
             values.add(student.getMajor());
             values.add(String.valueOf(student.getYearOfStudy()));
-            values.add("");
+            values.add("");  
+            values.add(student.getPassword());  
             lines.add(CsvUtils.toLine(values));
         }
         writeLines(filePath, lines);
@@ -112,22 +136,24 @@ public class UserLoader {
 
     public void saveStaffToFile(String filePath, List<CareerCenterStaff> staff) {
         List<String> lines = new ArrayList<>();
-        lines.add("StaffID,Name,Role,Department,Email");
+        lines.add("StaffID,Name,Role,Department,Email,Password");
         for (CareerCenterStaff member : staff) {
             List<String> values = new ArrayList<>();
             values.add(member.getUserId());
             values.add(member.getName());
             values.add("Career Center Staff");
             values.add(member.getStaffDepartment());
-            values.add("");
+            values.add("");  
+            values.add(member.getPassword()); 
             lines.add(CsvUtils.toLine(values));
         }
         writeLines(filePath, lines);
     }
+    
 
     public void saveCompanyRepsToFile(String filePath, List<CompanyRepresentative> reps) {
         List<String> lines = new ArrayList<>();
-        lines.add("CompanyRepID,Name,CompanyName,Department,Position,Email,Status");
+        lines.add("CompanyRepID,Name,CompanyName,Department,Position,Email,Status,Password");  
         for (CompanyRepresentative rep : reps) {
             List<String> values = new ArrayList<>();
             values.add(rep.getUserId());
@@ -135,12 +161,14 @@ public class UserLoader {
             values.add(rep.getCompanyName());
             values.add(rep.getDepartment());
             values.add(rep.getPosition());
-            values.add(rep.getUserId());
+            values.add(rep.getUserId());  
             values.add(rep.isApproved() ? "Approved" : "Pending");
+            values.add(rep.getPassword()); 
             lines.add(CsvUtils.toLine(values));
         }
         writeLines(filePath, lines);
     }
+    
 
     private int parseInt(String value, int fallback) {
         try {
