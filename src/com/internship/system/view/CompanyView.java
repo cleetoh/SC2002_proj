@@ -310,7 +310,7 @@ public class CompanyView {
                 return;
             }
 
-=            List<Application> allApplications = new ArrayList<>();
+            List<Application> allApplications = new ArrayList<>();
             Map<Integer, String> internshipTitles = new HashMap<>();
 
             for (Internship internship : internships) {
