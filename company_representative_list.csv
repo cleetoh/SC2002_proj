@@ -1,9 +1,8 @@
-CompanyRepID,Name,CompanyName,Department,Position,Email,Status
-REP001,John Tan,Google Singapore,Engineering,Senior HR Manager,REP001,Approved
-REP002,Sarah Lim,Microsoft Asia,Human Resources,Recruitment Lead,REP002,Approved
-REP003,David Chen,Amazon Web Services,Technology,HR Director,REP003,Approved
-REP004,Lisa Wong,Shopee,Engineering,People Operations Manager,REP004,Approved
-REP005,Michael Ng,ByteDance,Data Science,HR Business Partner,REP005,Approved
-REP006,Emily Zhang,Grab,Product Development,Recruitment Manager,REP006,Approved
-REP007,James Lee,DBS Bank,IT Division,HR Specialist,REP007,Approved
-john@techcorp.com,,,,,john@techcorp.com,Pending
+CompanyRepID,Name,CompanyName,Department,Position,Email,Status,Password
+REP001,John Tan,Google Singapore,Engineering,Senior HR Manager,REP001,Approved,password
+REP002,Sarah Lim,Microsoft Asia,Human Resources,Recruitment Lead,REP002,Approved,password
+REP003,David Chen,Amazon Web Services,Technology,HR Director,REP003,Approved,password
+REP004,Lisa Wong,Shopee,Engineering,People Operations Manager,REP004,Approved,password
+REP005,Michael Ng,ByteDance,Data Science,HR Business Partner,REP005,Approved,password
+REP006,Emily Zhang,Grab,Product Development,Recruitment Manager,REP006,Approved,password
+REP007,James Lee,DBS Bank,IT Division,HR Specialist,REP007,Approved,password
