@@ -13,10 +13,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for career center staff operations.
+ * Handles approval/rejection of company representatives and internships, and withdrawal request processing.
+ */
 public class StaffController {
+    /** Data manager for accessing system data. */
     private final DataManager dataManager;
+    /** The currently logged-in staff member. */
     private final CareerCenterStaff currentStaff;
 
+    /**
+     * Constructs a new StaffController for the specified staff member.
+     *
+     * @param dataManager the data manager
+     * @param currentStaff the staff member using this controller
+     */
     public StaffController(DataManager dataManager, CareerCenterStaff currentStaff) {
         this.dataManager = dataManager;
         this.currentStaff = currentStaff;

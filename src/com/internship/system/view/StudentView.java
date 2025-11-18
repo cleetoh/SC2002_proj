@@ -14,11 +14,24 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+/**
+ * View class for student interface.
+ * Handles display and user interaction for browsing and applying to internships.
+ */
 public class StudentView {
+    /** Controller for student operations. */
     private final StudentController studentController;
+    /** Controller for authentication. */
     private final AuthController authController;
+    /** Current filter criteria for viewing internships. */
     private FilterCriteria filterCriteria = FilterCriteria.builder().build();
 
+    /**
+     * Constructs a new StudentView with the specified controllers.
+     *
+     * @param studentController the student controller
+     * @param authController the authentication controller
+     */
     public StudentView(StudentController studentController, AuthController authController) {
         this.studentController = studentController;
         this.authController = authController;

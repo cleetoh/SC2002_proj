@@ -14,9 +14,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Handles loading and saving of user data (students, staff, company representatives) from/to CSV files.
+ */
 public class UserLoader {
+    /** Default password constant (deprecated, use PasswordValidator.getDefaultPassword() instead). */
     private static final String DEFAULT_PASSWORD = "password";
 
+    /**
+     * Loads students from a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @return list of loaded students, or empty list if file doesn't exist
+     */
     public List<Student> loadStudentsFromFile(String filePath) {
         Path path = Path.of(filePath);
         if (!Files.exists(path)) {
@@ -50,6 +60,12 @@ public class UserLoader {
     
 
 
+    /**
+     * Loads company representatives from a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @return list of loaded company representatives, or empty list if file doesn't exist
+     */
     public List<CompanyRepresentative> loadCompanyRepsFromFile(String filePath) {
         Path path = Path.of(filePath);
         if (!Files.exists(path)) {
@@ -85,6 +101,12 @@ public class UserLoader {
     }
 
 
+    /**
+     * Loads career center staff from a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @return list of loaded staff members, or empty list if file doesn't exist
+     */
     public List<CareerCenterStaff> loadStaffFromFile(String filePath) {
         Path path = Path.of(filePath);
         if (!Files.exists(path)) {
@@ -118,6 +140,13 @@ public class UserLoader {
     
     
 
+    /**
+     * Saves students to a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @param students list of students to save
+     * @throws RuntimeException if file writing fails
+     */
     public void saveStudentsToFile(String filePath, List<Student> students) {
         List<String> lines = new ArrayList<>();
         lines.add("StudentID,Name,Major,YearOfStudy,Email,Password"); 
@@ -134,6 +163,13 @@ public class UserLoader {
         writeLines(filePath, lines);
     }
 
+    /**
+     * Saves career center staff to a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @param staff list of staff members to save
+     * @throws RuntimeException if file writing fails
+     */
     public void saveStaffToFile(String filePath, List<CareerCenterStaff> staff) {
         List<String> lines = new ArrayList<>();
         lines.add("StaffID,Name,Role,Department,Email,Password");
@@ -151,6 +187,13 @@ public class UserLoader {
     }
     
 
+    /**
+     * Saves company representatives to a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @param reps list of company representatives to save
+     * @throws RuntimeException if file writing fails
+     */
     public void saveCompanyRepsToFile(String filePath, List<CompanyRepresentative> reps) {
         List<String> lines = new ArrayList<>();
         lines.add("CompanyRepID,Name,CompanyName,Department,Position,Email,Status,Password");  
@@ -170,6 +213,13 @@ public class UserLoader {
     }
     
 
+    /**
+     * Parses an integer from a string.
+     *
+     * @param value the string value
+     * @param fallback the fallback value if parsing fails
+     * @return the parsed integer, or fallback if parsing fails
+     */
     private int parseInt(String value, int fallback) {
         try {
             return Integer.parseInt(value.trim());
@@ -178,6 +228,13 @@ public class UserLoader {
         }
     }
 
+    /**
+     * Writes lines to a file.
+     *
+     * @param filePath path to the file
+     * @param lines list of lines to write
+     * @throws RuntimeException if file writing fails
+     */
     private void writeLines(String filePath, List<String> lines) {
         try {
             Files.write(Path.of(filePath), lines);

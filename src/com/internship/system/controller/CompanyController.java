@@ -14,18 +14,44 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for company representative operations.
+ * Handles internship creation, management, and application processing.
+ */
 public class CompanyController {
+    /** Maximum number of internships a representative can create. */
     private static final int MAX_INTERNSHIPS_PER_REP = 5;
+    /** Maximum number of slots allowed per internship. */
     private static final int MAX_SLOTS = 10;
 
+    /** Data manager for accessing system data. */
     private final DataManager dataManager;
+    /** The currently logged-in company representative. */
     private final CompanyRepresentative currentRep;
 
+    /**
+     * Constructs a new CompanyController for the specified representative.
+     *
+     * @param dataManager the data manager
+     * @param currentRep the company representative using this controller
+     */
     public CompanyController(DataManager dataManager, CompanyRepresentative currentRep) {
         this.dataManager = dataManager;
         this.currentRep = currentRep;
     }
 
+    /**
+     * Registers a new company representative.
+     *
+     * @param dataManager the data manager
+     * @param email the email (used as user ID)
+     * @param name the full name
+     * @param companyName the company name
+     * @param department the department
+     * @param position the position/title
+     * @return the newly created representative
+     * @throws IllegalArgumentException if a representative with the same ID already exists
+     */
     public static CompanyRepresentative register(DataManager dataManager,
             String email,
             String name,
@@ -48,10 +74,21 @@ public class CompanyController {
         return representative;
     }
 
+    /**
+     * Gets the current company representative.
+     *
+     * @return the current representative
+     */
     public CompanyRepresentative getCurrentRep() {
         return currentRep;
     }
 
+    /**
+     * Gets internships for the current company, filtered by criteria.
+     *
+     * @param criteria the filtering criteria
+     * @return list of internships matching the criteria and belonging to the company
+     */
     public List<Internship> getInternships(FilterCriteria criteria) {
         List<Internship> filteredInternships = dataManager.getFilteredInternships(criteria);
         return filteredInternships.stream()
@@ -59,11 +96,28 @@ public class CompanyController {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Checks if the representative can create more internships.
+     *
+     * @return true if under the limit, false otherwise
+     */
     public boolean canCreateMoreInternships() {
         long count = viewInternships().stream().count();
         return count < MAX_INTERNSHIPS_PER_REP;
     }
 
+    /**
+     * Creates a new internship posting.
+     *
+     * @param title the internship title
+     * @param description the description
+     * @param level the difficulty level
+     * @param preferredMajor the preferred major
+     * @param openingDate the opening date (can be null)
+     * @param closingDate the closing date (can be null)
+     * @param slots the number of slots (1-10)
+     * @return Optional containing the created internship if successful, empty otherwise
+     */
     public Optional<Internship> createInternship(String title,
             String description,
             InternshipLevel level,
@@ -109,12 +163,31 @@ public class CompanyController {
         return Optional.of(internship);
     }
 
+    /**
+     * Gets all internships managed by the current representative.
+     *
+     * @return list of internships owned by this representative
+     */
     public List<Internship> viewInternships() {
         return dataManager.getInternships().stream()
                 .filter(internship -> internship.getRepresentativeInChargeId().equals(currentRep.getUserId()))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Updates an existing internship.
+     * Only works for internships in PENDING status that are owned by the current representative.
+     *
+     * @param internshipId the internship ID
+     * @param title the new title
+     * @param description the new description
+     * @param level the new level
+     * @param preferredMajor the new preferred major
+     * @param openingDate the new opening date
+     * @param closingDate the new closing date
+     * @param slots the new number of slots
+     * @return true if update successful, false otherwise
+     */
     public boolean updateInternship(int internshipId,
             String title,
             String description,
@@ -162,6 +235,12 @@ public class CompanyController {
         return true;
     }
 
+    /**
+     * Toggles the visibility of an approved internship.
+     *
+     * @param internshipId the internship ID
+     * @return true if toggle successful, false otherwise
+     */
     public boolean toggleInternshipVisibility(int internshipId) {
         Optional<Internship> internshipOpt = ensureOwnership(internshipId);
         if (internshipOpt.isEmpty()) {
@@ -177,6 +256,12 @@ public class CompanyController {
         return true;
     }
 
+    /**
+     * Gets all applications for a specific internship.
+     *
+     * @param internshipId the internship ID
+     * @return list of applications, or empty list if internship not found or not owned
+     */
     public List<Application> viewApplicationsForInternship(int internshipId) {
         Optional<Internship> internshipOpt = ensureOwnership(internshipId);
         if (internshipOpt.isEmpty()) {
@@ -185,6 +270,14 @@ public class CompanyController {
         return dataManager.getApplicationsForInternship(internshipId);
     }
 
+    /**
+     * Processes an application by updating its status.
+     * Can approve (SUCCESSFUL_PENDING) or reject (UNSUCCESSFUL) applications.
+     *
+     * @param applicationId the application ID
+     * @param newStatus the new status (must be SUCCESSFUL_PENDING or UNSUCCESSFUL)
+     * @return true if processing successful, false otherwise
+     */
     public boolean processApplication(int applicationId, ApplicationStatus newStatus) {
         if (newStatus != ApplicationStatus.SUCCESSFUL_PENDING
                 && newStatus != ApplicationStatus.UNSUCCESSFUL) {
@@ -229,6 +322,13 @@ public class CompanyController {
         return true;
     }
 
+    /**
+     * Deletes an internship.
+     * Only works for internships in PENDING status that are owned by the current representative.
+     *
+     * @param internshipId the internship ID
+     * @return true if deletion successful, false otherwise
+     */
     public boolean deleteInternship(int internshipId) {
         Optional<Internship> internshipOpt = ensureOwnership(internshipId);
         if (internshipOpt.isEmpty()) {
@@ -243,6 +343,12 @@ public class CompanyController {
         return true;
     }
 
+    /**
+     * Ensures that an internship is owned by the current representative.
+     *
+     * @param internshipId the internship ID
+     * @return Optional containing the internship if owned, empty otherwise
+     */
     private Optional<Internship> ensureOwnership(int internshipId) {
         Optional<Internship> internshipOpt = dataManager.findInternshipById(internshipId);
         if (internshipOpt.isEmpty()) {

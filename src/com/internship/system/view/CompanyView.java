@@ -19,11 +19,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * View class for company representative interface.
+ * Handles display and user interaction for managing internships and applications.
+ */
 public class CompanyView {
+    /** Controller for company operations. */
     private final CompanyController companyController;
+    /** Controller for authentication. */
     private final AuthController authController;
+    /** Current filter criteria for viewing internships. */
     private FilterCriteria filterCriteria = FilterCriteria.builder().build();
 
+    /**
+     * Constructs a new CompanyView with the specified controllers.
+     *
+     * @param companyController the company controller
+     * @param authController the authentication controller
+     */
     public CompanyView(CompanyController companyController, AuthController authController) {
         this.companyController = companyController;
         this.authController = authController;

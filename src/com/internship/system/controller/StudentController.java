@@ -14,12 +14,25 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for student operations.
+ * Handles browsing internships, applying, and managing applications.
+ */
 public class StudentController {
+    /** Maximum number of active applications a student can have. */
     private static final int MAX_ACTIVE_APPLICATIONS = 3;
 
+    /** Data manager for accessing system data. */
     private final DataManager dataManager;
+    /** The currently logged-in student. */
     private final Student currentStudent;
 
+    /**
+     * Constructs a new StudentController for the specified student.
+     *
+     * @param dataManager the data manager
+     * @param currentStudent the student using this controller
+     */
     public StudentController(DataManager dataManager, Student currentStudent) {
         this.dataManager = dataManager;
         this.currentStudent = currentStudent;

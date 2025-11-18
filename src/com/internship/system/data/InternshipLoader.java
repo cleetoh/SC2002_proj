@@ -16,9 +16,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Handles loading and saving of internships and applications from/to CSV files.
+ */
 public class InternshipLoader {
+    /** Date formatter for parsing and formatting dates in ISO format (YYYY-MM-DD). */
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
+    /**
+     * Loads internships from a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @return list of loaded internships, or empty list if file doesn't exist
+     * @throws RuntimeException if file reading fails
+     */
     public List<Internship> loadInternshipsFromFile(String filePath) {
         Path path = Path.of(filePath);
         if (!Files.exists(path)) {
@@ -66,6 +77,13 @@ public class InternshipLoader {
         return internships;
     }
 
+    /**
+     * Loads applications from a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @return list of loaded applications, or empty list if file doesn't exist
+     * @throws RuntimeException if file reading fails
+     */
     public List<Application> loadApplicationsFromFile(String filePath) {
         Path path = Path.of(filePath);
         if (!Files.exists(path)) {
@@ -93,6 +111,13 @@ public class InternshipLoader {
         return applications;
     }
 
+    /**
+     * Saves internships to a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @param internships list of internships to save
+     * @throws RuntimeException if file writing fails
+     */
     public void saveInternshipsToFile(String filePath, List<Internship> internships) {
         List<String> lines = new ArrayList<>();
         lines.add(
@@ -116,6 +141,13 @@ public class InternshipLoader {
         writeLines(filePath, lines);
     }
 
+    /**
+     * Saves applications to a CSV file.
+     *
+     * @param filePath path to the CSV file
+     * @param applications list of applications to save
+     * @throws RuntimeException if file writing fails
+     */
     public void saveApplicationsToFile(String filePath, List<Application> applications) {
         List<String> lines = new ArrayList<>();
         lines.add("applicationId,studentId,internshipId,status,withdrawalRequested");
@@ -131,6 +163,12 @@ public class InternshipLoader {
         writeLines(filePath, lines);
     }
 
+    /**
+     * Parses an internship level from a string.
+     *
+     * @param raw the raw string value
+     * @return the parsed level, or BASIC as default if parsing fails
+     */
     private InternshipLevel parseLevel(String raw) {
         try {
             return InternshipLevel.valueOf(raw.trim().toUpperCase());
@@ -139,6 +177,12 @@ public class InternshipLoader {
         }
     }
 
+    /**
+     * Parses an internship status from a string.
+     *
+     * @param raw the raw string value
+     * @return the parsed status, or PENDING as default if parsing fails
+     */
     private InternshipStatus parseStatus(String raw) {
         try {
             return InternshipStatus.valueOf(raw.trim().toUpperCase());
@@ -147,6 +191,12 @@ public class InternshipLoader {
         }
     }
 
+    /**
+     * Parses an application status from a string.
+     *
+     * @param raw the raw string value
+     * @return the parsed status, or PENDING as default if parsing fails
+     */
     private ApplicationStatus parseApplicationStatus(String raw) {
         try {
             return ApplicationStatus.valueOf(raw.trim().toUpperCase());
@@ -155,6 +205,12 @@ public class InternshipLoader {
         }
     }
 
+    /**
+     * Parses a date from a string.
+     *
+     * @param raw the raw string value (ISO format YYYY-MM-DD)
+     * @return the parsed date, or null if input is null or blank
+     */
     private LocalDate parseDate(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
@@ -162,10 +218,23 @@ public class InternshipLoader {
         return LocalDate.parse(raw.trim(), DATE_FORMATTER);
     }
 
+    /**
+     * Formats a date to a string.
+     *
+     * @param date the date to format
+     * @return formatted date string, or empty string if date is null
+     */
     private String formatDate(LocalDate date) {
         return date == null ? "" : date.format(DATE_FORMATTER);
     }
 
+    /**
+     * Parses an integer from a string.
+     *
+     * @param value the string value
+     * @param fallback the fallback value if parsing fails
+     * @return the parsed integer, or fallback if parsing fails
+     */
     private int parseInt(String value, int fallback) {
         try {
             return Integer.parseInt(value.trim());
@@ -174,6 +243,13 @@ public class InternshipLoader {
         }
     }
 
+    /**
+     * Writes lines to a file.
+     *
+     * @param filePath path to the file
+     * @param lines list of lines to write
+     * @throws RuntimeException if file writing fails
+     */
     private void writeLines(String filePath, List<String> lines) {
         try {
             Files.write(Path.of(filePath), lines);

@@ -3,6 +3,10 @@ package com.internship.system.view;
 import com.internship.system.model.user.User;
 import com.internship.system.util.ConsoleInput;
 
+/**
+ * View class for the main menu interface.
+ * Handles display and input for login, registration, and main menu options.
+ */
 public class MainMenuView {
 
     public void displaySplash() {

@@ -11,17 +11,31 @@ import com.internship.system.view.StaffView;
 import com.internship.system.view.StudentView;
 import java.util.Optional;
 
+/**
+ * Main application controller that orchestrates the overall application flow.
+ * Handles main menu navigation, login, registration, and user session dispatch.
+ */
 public class AppController {
+    /** Data manager for accessing all system data. */
     private final DataManager dataManager;
+    /** View for displaying main menu and prompts. */
     private final MainMenuView mainMenuView;
+    /** Controller for authentication operations. */
     private final AuthController authController;
 
+    /**
+     * Constructs a new AppController and initializes its dependencies.
+     */
     public AppController() {
         this.dataManager = new DataManager();
         this.mainMenuView = new MainMenuView();
         this.authController = new AuthController(dataManager);
     }
 
+    /**
+     * Runs the main application loop.
+     * Loads data, displays menu, handles user choices, and saves data on exit.
+     */
     public void run() {
         dataManager.loadAllData();
         mainMenuView.displaySplash();
@@ -44,6 +58,10 @@ public class AppController {
         dataManager.saveAllData();
     }
 
+    /**
+     * Handles user login flow.
+     * Prompts for credentials, validates, and manages password reset options.
+     */
     private void handleLogin() {
         String userId = mainMenuView.promptForUserId();
         Optional<User> userOpt = authController.findUserById(userId);
@@ -113,6 +131,10 @@ public class AppController {
     }
 
 
+    /**
+     * Handles company representative registration flow.
+     * Collects registration information and creates a new representative account.
+     */
     private void handleRegistration() {
         String email = mainMenuView.promptForEmail();
         String name = mainMenuView.promptForName();
@@ -128,6 +150,11 @@ public class AppController {
         }
     }
 
+    /**
+     * Dispatches the user to the appropriate controller and view based on their role.
+     *
+     * @param user the logged-in user
+     */
     private void dispatchUserSession(User user) {
         if (user instanceof Student student) {
             StudentController studentController = new StudentController(dataManager, student);
