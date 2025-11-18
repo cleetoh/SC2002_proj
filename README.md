@@ -57,7 +57,8 @@ com.internship.system
 └── util/                  // Utility classes
     ├── ConsoleInput.java    // Handles console input
     ├── CsvUtils.java        // Utilities for CSV parsing and generation
-    └── IdGenerator.java     // Generates unique IDs
+    ├── IdGenerator.java     // Generates unique IDs
+    └── PasswordValidator.java // Utilities for password validation
 ```
 
 ## 4. Class Specifications
@@ -236,8 +237,9 @@ The application status follows this lifecycle:
 
   - `handleLogin()`: `void`  
     Manages the full login and password-handling process:
+
     - Prompts for user ID and checks if the user exists.
-    - If the user is a `CompanyRepresentative` whose account is not yet approved, the system prevents login and displays an “account not approved” message.
+    - If the user is a `CompanyRepresentative` whose account is not yet approved, the system prevents login and displays an "account not approved" message.
     - Prompts for password inside a retry loop:
       - If the password is correct, calls `authController.login(...)` and dispatches the session to the appropriate controller (Student, Company Representative, or Staff).
       - If the password is incorrect, displays a retry menu with three options:
@@ -247,6 +249,16 @@ The application status follows this lifecycle:
       - On **Reset password**, calls `authController.resetPassword(userId)`, displays the generated temporary password, and returns to the main menu.
       - On **Try again**, re-prompts for password within the same loop.
       - On **Back to main menu**, exits the login flow and returns to the main menu.
+
+  - `handleRegistration()`: `void`  
+    Manages company representative registration flow:
+
+    - Prompts for email (used as user ID), name, company name, department, and position.
+    - Creates a new `CompanyRepresentative` account with default password "password" and `approved` status set to `false`.
+    - The new representative must be approved by staff before they can log in.
+
+  - `dispatchUserSession(User user)`: `void`  
+    Routes the logged-in user to the appropriate controller and view based on their role (Student, CompanyRepresentative, or CareerCenterStaff).
 
 #### `AuthController`
 
@@ -273,17 +285,22 @@ The application status follows this lifecycle:
 - **Attributes:**
   - `Student currentStudent`
   - `DataManager dataManager`
+  - `MAX_ACTIVE_APPLICATIONS` (constant: 3) - Maximum number of active applications a student can have
 - **Methods:**
+  - `getCurrentStudent()`: `Student`  
+    Returns the currently logged-in student.
   - `getVisibleInternships(FilterCriteria criteria)`: `List<Internship>`  
-    Returns internships visible to the student based on their profile (year of study, major), visibility settings, and filter criteria. Only shows internships matching the student's major and appropriate level for their year of study.
+    Returns internships visible to the student based on their profile (year of study, major), visibility settings, and filter criteria. Only shows internships matching the student's major and appropriate level for their year of study. Students in year 1-2 can only see BASIC level internships; year 3+ can see all levels.
   - `applyForInternship(int internshipId)`: `boolean`  
-    Validates eligibility (major match, level eligibility, visibility, available slots) before allowing application.
-  - `viewAppliedInternships()`: `List<Application>`
+    Validates eligibility (major match, level eligibility, visibility, available slots, application limit) before allowing application. Students can have at most 3 active applications (PENDING, SUCCESSFUL_PENDING, SUCCESSFUL_ACCEPTED, or SUCCESSFUL_REJECTED). Prevents duplicate applications.
+  - `viewAppliedInternships()`: `List<Application>`  
+    Returns all applications submitted by the current student.
   - `acceptOffer(int applicationId)`: `boolean`  
-    Accepts an offer and automatically withdraws all other pending applications.
+    Accepts an offer from SUCCESSFUL_PENDING status. Students can only accept one offer at a time. Automatically withdraws all other pending applications (PENDING becomes PENDING_WITHDRAWN, SUCCESSFUL_PENDING/SUCCESSFUL_REJECTED become SUCCESSFUL_WITHDRAWN). Registers a confirmed offer on the internship.
   - `rejectOffer(int applicationId)`: `boolean`  
-    Rejects an offer from SUCCESSFUL_PENDING status.
-  - `withdrawApplication(int applicationId)`: `boolean`
+    Rejects an offer from SUCCESSFUL_PENDING status, changing it to SUCCESSFUL_REJECTED.
+  - `withdrawApplication(int applicationId)`: `boolean`  
+    Requests withdrawal of an accepted offer (SUCCESSFUL_ACCEPTED status). Sets the withdrawal request flag, which must be processed by staff. Students cannot withdraw applications in other statuses directly.
 
 #### `CompanyController`
 
@@ -291,24 +308,31 @@ The application status follows this lifecycle:
 - **Attributes:**
   - `CompanyRepresentative currentRep`
   - `DataManager dataManager`
+  - `MAX_INTERNSHIPS_PER_REP` (constant: 5) - Maximum number of internships a representative can create
+  - `MAX_SLOTS` (constant: 10) - Maximum number of slots allowed per internship
 - **Methods:**
-  - `register(DataManager dataManager, String email, ...)`: `CompanyRepresentative` (static)
+  - `register(DataManager dataManager, String email, String name, String companyName, String department, String position)`: `CompanyRepresentative` (static)  
+    Registers a new company representative. Uses email as user ID and sets default password to "password". The new representative starts with `approved` status `false` and must be approved by staff before logging in. Throws `IllegalArgumentException` if a representative with the same ID already exists.
+  - `getCurrentRep()`: `CompanyRepresentative`  
+    Returns the currently logged-in company representative.
   - `getInternships(FilterCriteria criteria)`: `List<Internship>`  
     Returns internships filtered by company name and criteria. Company representatives can always view their own internships regardless of visibility settings.
   - `canCreateMoreInternships()`: `boolean`  
     Checks if the representative has reached the maximum limit (5 internships).
-  - `createInternship(...)`: `Optional<Internship>`  
-    Creates a new internship with validation (max 5 per rep, slots 1-10, required fields). Returns empty if validation fails.
-  - `viewInternships()`: `List<Internship>`
-  - `updateInternship(...)`: `boolean`  
-    Updates internship details. Only allowed for PENDING internships. Resets status to PENDING and visibility to false.
+  - `createInternship(String title, String description, InternshipLevel level, String preferredMajor, LocalDate openingDate, LocalDate closingDate, int slots)`: `Optional<Internship>`  
+    Creates a new internship with validation (max 5 per rep, slots 1-10, required fields). The internship is created with PENDING status and visibility set to false. Returns empty if validation fails.
+  - `viewInternships()`: `List<Internship>`  
+    Returns all internships managed by the current representative.
+  - `updateInternship(int internshipId, String title, String description, InternshipLevel level, String preferredMajor, LocalDate openingDate, LocalDate closingDate, int slots)`: `boolean`  
+    Updates internship details. Only allowed for PENDING internships owned by the current representative. Resets status to PENDING, visibility to false, and confirmed offers to 0.
   - `deleteInternship(int internshipId)`: `boolean`  
-    Deletes an internship. Only allowed for PENDING internships.
+    Deletes an internship. Only allowed for PENDING internships owned by the current representative.
   - `toggleInternshipVisibility(int internshipId)`: `boolean`  
-    Toggles visibility of an APPROVED internship.
-  - `viewApplicationsForInternship(int internshipId)`: `List<Application>`
+    Toggles visibility of an APPROVED internship owned by the current representative.
+  - `viewApplicationsForInternship(int internshipId)`: `List<Application>`  
+    Returns all applications for a specific internship owned by the current representative.
   - `processApplication(int applicationId, ApplicationStatus newStatus)`: `boolean`  
-    Processes applications (approve/reject). Validates slot availability before approving.
+    Processes applications (approve to SUCCESSFUL_PENDING or reject to UNSUCCESSFUL). Cannot process withdrawn applications. Validates slot availability before approving. Clears withdrawal request flag when processing.
 
 #### `StaffController`
 
@@ -317,15 +341,24 @@ The application status follows this lifecycle:
   - `CareerCenterStaff currentStaff`
   - `DataManager dataManager`
 - **Methods:**
-  - `approveCompanyRep(String repId)`: `boolean`
-  - `rejectCompanyRep(String repId)`: `boolean`
-  - `viewPendingReps()`: `List<CompanyRepresentative>`
-  - `approveInternship(int internshipId)`: `boolean`
-  - `rejectInternship(int internshipId)`: `boolean`
-  - `viewPendingInternships()`: `List<Internship>`
-  - `getPendingWithdrawalRequests()`: `List<Application>`
+  - `getCurrentStaff()`: `CareerCenterStaff`  
+    Returns the currently logged-in staff member.
+  - `viewPendingReps()`: `List<CompanyRepresentative>`  
+    Returns all company representatives with `approved` status `false`.
+  - `approveCompanyRep(String repId)`: `boolean`  
+    Approves a company representative, allowing them to log in. Sets their `approved` status to `true`.
+  - `rejectCompanyRep(String repId)`: `boolean`  
+    Rejects a company representative, keeping their `approved` status as `false`.
+  - `viewPendingInternships()`: `List<Internship>`  
+    Returns all internships with PENDING status.
+  - `approveInternship(int internshipId)`: `boolean`  
+    Approves an internship, changing its status to APPROVED and setting visibility to true.
+  - `rejectInternship(int internshipId)`: `boolean`  
+    Rejects an internship, changing its status to REJECTED and setting visibility to false.
+  - `getPendingWithdrawalRequests()`: `List<Application>`  
+    Returns all applications with the withdrawal request flag set to true.
   - `processWithdrawalRequest(int applicationId, boolean approve)`: `boolean`  
-    Processes withdrawal requests. When approved, updates application status and revokes confirmed offers if applicable, updating slot availability.
+    Processes withdrawal requests. When approved, changes application status to SUCCESSFUL_WITHDRAWN. If the application was in SUCCESSFUL_ACCEPTED status, revokes the confirmed offer on the internship, updating slot availability. Clears the withdrawal request flag.
   - `generateReport(FilterCriteria criteria)`: `List<Internship>`  
     Generates filtered reports. Supports filtering by status, level, preferred major, company name, closing date, and visibility.
 
@@ -346,6 +379,7 @@ Each view class is responsible for displaying a specific set of menus and inform
 - **`ConsoleInput`**: A utility class for handling user input from the console.
 - **`CsvUtils`**: A utility class for parsing and creating CSV-formatted strings.
 - **`IdGenerator`**: A class for generating auto-incrementing IDs for internships and applications.
+- **`PasswordValidator`**: A utility class for password validation and management. Provides methods to validate passwords (non-null and non-blank), get the default password ("password"), and compare passwords.
 
 ## 5. Assumptions and Clarifications
 
@@ -354,6 +388,11 @@ Each view class is responsible for displaying a specific set of menus and inform
 - **Data Files:** The application will assume that the initial data files (`student_list.csv`, `staff_list.csv`, `company_representative_list.csv`, `internships.csv`, `applications.csv`) are present in the project's root directory at startup.
 - **User State:** Filter settings for viewing internships are temporarily stored in the respective controller (e.g., `StudentController`) for the duration of a user's session.
 - **User Deletion:** The current requirements do not specify functionality for deleting users. As such, it is assumed that user accounts are persistent.
+- **Application Limits:** Students can have a maximum of 3 active applications at any time. Active applications include those with statuses: PENDING, SUCCESSFUL_PENDING, SUCCESSFUL_ACCEPTED, or SUCCESSFUL_REJECTED.
+- **Internship Limits:** Company representatives can create a maximum of 5 internships. Each internship can have 1-10 slots.
+- **Level Eligibility:** Students in year 1-2 can only apply to BASIC level internships. Students in year 3 and above can apply to internships of any level.
+- **Default Password:** New company representative accounts are created with the default password "password", which should be changed on first login.
+- **Withdrawal Process:** Students can request withdrawal of accepted offers (SUCCESSFUL_ACCEPTED). These requests must be processed by staff. When a student accepts an offer, all other pending applications are automatically withdrawn.
 
 ## 6. Commands
 

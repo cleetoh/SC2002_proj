@@ -6,7 +6,7 @@ import com.internship.system.model.user.CompanyRepresentative;
 import com.internship.system.model.user.Student;
 import com.internship.system.model.user.User;
 import java.util.Optional;
-import java.util.UUID; 
+import java.util.UUID;
 
 /**
  * Controller for handling user authentication and authorization.
@@ -29,9 +29,10 @@ public class AuthController {
 
     /**
      * Attempts to log in a user with the provided credentials.
-     * Rejects login if user doesn't exist, password is incorrect, or company representative is not approved.
+     * Rejects login if user doesn't exist, password is incorrect, or company
+     * representative is not approved.
      *
-     * @param userId the user ID
+     * @param userId   the user ID
      * @param password the password
      * @return Optional containing the logged-in user if successful, empty otherwise
      */
@@ -64,7 +65,8 @@ public class AuthController {
     /**
      * Gets the currently logged-in user.
      *
-     * @return Optional containing the current user, or empty if no user is logged in
+     * @return Optional containing the current user, or empty if no user is logged
+     *         in
      */
     public Optional<User> getCurrentUser() {
         return Optional.ofNullable(currentUser);
@@ -73,9 +75,10 @@ public class AuthController {
     /**
      * Changes the password for a user.
      *
-     * @param user the user whose password to change
+     * @param user        the user whose password to change
      * @param newPassword the new password (must not be null or blank)
-     * @return true if password was changed successfully, false if new password is invalid
+     * @return true if password was changed successfully, false if new password is
+     *         invalid
      */
     public boolean changePassword(User user, String newPassword) {
         if (newPassword == null || newPassword.isBlank()) {
@@ -90,7 +93,8 @@ public class AuthController {
      * Resets a user's password to a temporary password.
      *
      * @param userId the user ID
-     * @return Optional containing the temporary password if reset successful, empty otherwise
+     * @return Optional containing the temporary password if reset successful, empty
+     *         otherwise
      */
     public Optional<String> resetPassword(String userId) {
         Optional<User> userOptional = findUserById(userId);
@@ -101,8 +105,7 @@ public class AuthController {
         User user = userOptional.get();
         String tempPassword = generateTemporaryPassword();
         user.setPassword(tempPassword);
-        //dataManager.saveAllData();
-        user.setPassword(tempPassword);
+        dataManager.saveAllData();
 
         return Optional.of(tempPassword);
     }
@@ -118,7 +121,8 @@ public class AuthController {
     }
 
     /**
-     * Finds a user by ID across all user types (student, company representative, staff).
+     * Finds a user by ID across all user types (student, company representative,
+     * staff).
      *
      * @param userId the user ID to search for
      * @return Optional containing the user if found, empty otherwise
