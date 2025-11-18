@@ -28,8 +28,6 @@ public class StaffView {
     public void run() {
         boolean running = true;
         while (running) {
-            // Check if user is still logged in (may have been logged out after password
-            // change)
             if (authController.getCurrentUser().isEmpty()) {
                 running = false;
                 break;
@@ -44,7 +42,6 @@ public class StaffView {
                 case 5 -> handleSetFilters();
                 case 6 -> {
                     handleChangePassword();
-                    // If password was changed successfully, logout occurred - exit the loop
                     if (authController.getCurrentUser().isEmpty()) {
                         running = false;
                     }
@@ -90,7 +87,6 @@ public class StaffView {
             System.out.println();
             String repId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 repId = ConsoleInput.readLine("Enter Representative ID to process (or press Enter to go back): ");
                 if (repId.isBlank()) {
@@ -98,7 +94,6 @@ public class StaffView {
                     return;
                 }
 
-                // Validate the representative ID
                 final String finalRepId = repId;
                 boolean validId = reps.stream()
                         .anyMatch(rep -> rep.getUserId().equals(finalRepId));
@@ -184,7 +179,6 @@ public class StaffView {
             System.out.println();
             int internshipId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 String input = ConsoleInput.readLine("Enter Internship ID to process (or press Enter to go back): ");
                 if (input.isBlank()) {
@@ -192,7 +186,6 @@ public class StaffView {
                     return;
                 }
 
-                // Try to parse the input as an integer
                 try {
                     internshipId = Integer.parseInt(input.trim());
                 } catch (NumberFormatException e) {
@@ -200,7 +193,6 @@ public class StaffView {
                     continue;
                 }
 
-                // Validate the internship ID
                 final int finalInternshipId = internshipId;
                 boolean validId = internships.stream()
                         .anyMatch(internship -> internship.getInternshipId() == finalInternshipId);
@@ -285,7 +277,6 @@ public class StaffView {
             System.out.println();
             int applicationId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 String input = ConsoleInput.readLine("Enter Application ID to process (or press Enter to go back): ");
                 if (input.isBlank()) {
@@ -293,7 +284,6 @@ public class StaffView {
                     return;
                 }
 
-                // Try to parse the input as an integer
                 try {
                     applicationId = Integer.parseInt(input.trim());
                 } catch (NumberFormatException e) {
@@ -301,7 +291,6 @@ public class StaffView {
                     continue;
                 }
 
-                // Validate the application ID
                 final int finalApplicationId = applicationId;
                 boolean validId = requests.stream()
                         .anyMatch(application -> application.getApplicationId() == finalApplicationId);

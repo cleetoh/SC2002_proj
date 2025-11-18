@@ -187,4 +187,15 @@ public class Internship {
         return (openingDate == null || !date.isBefore(openingDate))
                 && (closingDate == null || !date.isAfter(closingDate));
     }
+
+
+    public void validateDates() {
+        if (openingDate != null && closingDate != null) {
+            if (closingDate.isBefore(openingDate)) {
+                throw new IllegalArgumentException(
+                    "Invalid date range: closing date cannot be before opening date. " +
+                    "Opening: " + openingDate + ", Closing: " + closingDate);
+            }
+        }
+    }
 }

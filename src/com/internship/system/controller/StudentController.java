@@ -95,7 +95,6 @@ public class StudentController {
             return false;
         }
 
-        // Change status from SUCCESSFUL_PENDING to SUCCESSFUL_ACCEPTED
         application.setStatus(ApplicationStatus.SUCCESSFUL_ACCEPTED);
         dataManager.updateApplication(application);
 
@@ -124,7 +123,6 @@ public class StudentController {
             return false;
         }
 
-        // Change status from SUCCESSFUL_PENDING to SUCCESSFUL_REJECTED
         application.setStatus(ApplicationStatus.SUCCESSFUL_REJECTED);
         dataManager.updateApplication(application);
         dataManager.saveAllData();
@@ -141,17 +139,14 @@ public class StudentController {
             return false;
         }
 
-        // Only allow withdrawal of SUCCESSFUL_ACCEPTED status
         if (application.getStatus() != ApplicationStatus.SUCCESSFUL_ACCEPTED) {
             return false;
         }
 
-        // Check if withdrawal is already requested
         if (application.isWithdrawalRequested()) {
             return false;
         }
 
-        // Request withdrawal - status remains SUCCESSFUL_ACCEPTED until staff approval
         application.setWithdrawalRequested(true);
         dataManager.updateApplication(application);
         dataManager.saveAllData();

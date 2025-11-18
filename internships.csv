@@ -9,3 +9,4 @@ internshipId,title,description,level,preferredMajor,openingDate,closingDate,stat
 8,Backend Systems Intern,"Design and implement scalable backend systems. Work with databases, APIs, and distributed systems.",BASIC,Computer Engineering,2025-10-10,2025-12-10,APPROVED,Google Singapore,REP001,3,true
 9,Data Analytics Intern,"Create dashboards and reports for business intelligence. Work with SQL, Python, and data visualization tools.",BASIC,Data Science & AI,2025-11-05,2026-01-05,APPROVED,Microsoft Asia,REP002,4,true
 10,Cybersecurity Intern,Assess security vulnerabilities and implement security measures. Learn about penetration testing and security protocols.,ADVANCED,Computer Engineering,2025-10-30,2025-12-30,APPROVED,Amazon Web Services,REP003,2,true
+11,Backend Developer Intern,Develop backend services,INTERMEDIATE,Computer Engineering,2025-12-15,2025-11-20,PENDING,Google Singapore,REP001,2,false

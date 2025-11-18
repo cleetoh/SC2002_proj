@@ -27,8 +27,7 @@ public class StudentView {
     public void run() {
         boolean running = true;
         while (running) {
-            // Check if user is still logged in (may have been logged out after password
-            // change)
+
             if (authController.getCurrentUser().isEmpty()) {
                 running = false;
                 break;
@@ -41,7 +40,6 @@ public class StudentView {
                 case 3 -> handleSetFilters();
                 case 4 -> {
                     handleChangePassword();
-                    // If password was changed successfully, logout occurred - exit the loop
                     if (authController.getCurrentUser().isEmpty()) {
                         running = false;
                     }
@@ -89,7 +87,6 @@ public class StudentView {
             System.out.println();
             int internshipId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 String input = ConsoleInput.readLine("Enter Internship ID to apply (or press Enter to go back): ");
                 if (input.isBlank()) {
@@ -97,7 +94,6 @@ public class StudentView {
                     return;
                 }
 
-                // Try to parse the input as an integer
                 try {
                     internshipId = Integer.parseInt(input.trim());
                 } catch (NumberFormatException e) {
@@ -105,7 +101,6 @@ public class StudentView {
                     continue;
                 }
 
-                // Validate the internship ID
                 final int finalInternshipId = internshipId;
                 boolean validId = internships.stream()
                         .anyMatch(internship -> internship.getInternshipId() == finalInternshipId);
@@ -185,7 +180,6 @@ public class StudentView {
             System.out.println();
             int applicationId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 String input = ConsoleInput.readLine("Enter Application ID to manage (or press Enter to go back): ");
                 if (input.isBlank()) {
@@ -193,7 +187,6 @@ public class StudentView {
                     return;
                 }
 
-                // Try to parse the input as an integer
                 try {
                     applicationId = Integer.parseInt(input.trim());
                 } catch (NumberFormatException e) {
@@ -201,7 +194,6 @@ public class StudentView {
                     continue;
                 }
 
-                // Validate the application ID
                 final int finalApplicationId = applicationId;
                 boolean validId = applications.stream()
                         .anyMatch(application -> application.getApplicationId() == finalApplicationId);
@@ -213,7 +205,6 @@ public class StudentView {
                 }
             }
 
-            // Find the selected application to determine available actions
             final int finalApplicationIdForFilter = applicationId;
             Application selectedApplication = applications.stream()
                     .filter(app -> app.getApplicationId() == finalApplicationIdForFilter)
@@ -225,7 +216,6 @@ public class StudentView {
                 continue;
             }
 
-            // Show context-aware actions based on application status
             ApplicationStatus status = selectedApplication.getStatus();
             boolean canAcceptRejectOffer = status == ApplicationStatus.SUCCESSFUL_PENDING;
             boolean canWithdraw = status == ApplicationStatus.SUCCESSFUL_ACCEPTED

@@ -1,0 +1,8 @@
+com.internship.system
+com.internship.system.controller
+com.internship.system.data
+com.internship.system.model
+com.internship.system.model.enums
+com.internship.system.model.user
+com.internship.system.util
+com.internship.system.view

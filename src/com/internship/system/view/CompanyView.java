@@ -32,8 +32,7 @@ public class CompanyView {
     public void run() {
         boolean running = true;
         while (running) {
-            // Check if user is still logged in (may have been logged out after password
-            // change)
+
             if (authController.getCurrentUser().isEmpty()) {
                 running = false;
                 break;
@@ -47,7 +46,6 @@ public class CompanyView {
                 case 4 -> handleSetFilters();
                 case 5 -> {
                     handleChangePassword();
-                    // If password was changed successfully, logout occurred - exit the loop
                     if (authController.getCurrentUser().isEmpty()) {
                         running = false;
                     }
@@ -98,7 +96,6 @@ public class CompanyView {
             System.out.println();
             int internshipId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 String input = ConsoleInput.readLine("Enter Internship ID to manage (or press Enter to go back): ");
                 if (input.isBlank()) {
@@ -106,7 +103,6 @@ public class CompanyView {
                     return;
                 }
 
-                // Try to parse the input as an integer
                 try {
                     internshipId = Integer.parseInt(input.trim());
                 } catch (NumberFormatException e) {
@@ -114,7 +110,6 @@ public class CompanyView {
                     continue;
                 }
 
-                // Validate the internship ID
                 final int finalInternshipId = internshipId;
                 boolean validId = internships.stream()
                         .anyMatch(internship -> internship.getInternshipId() == finalInternshipId);
@@ -176,7 +171,6 @@ public class CompanyView {
     }
 
     private void handleToggleVisibilityForId(int internshipId, List<Internship> internships) {
-        // Find the internship to check its current visibility
         Internship internship = internships.stream()
                 .filter(i -> i.getInternshipId() == internshipId)
                 .findFirst()
@@ -202,7 +196,6 @@ public class CompanyView {
     }
 
     private void handleDeleteInternship(int internshipId, List<Internship> internships) {
-        // Find the internship to check its status
         Internship internship = internships.stream()
                 .filter(i -> i.getInternshipId() == internshipId)
                 .findFirst()
@@ -285,6 +278,13 @@ public class CompanyView {
         LocalDate closingDate = promptForDate("Closing Date (YYYY-MM-DD, leave blank for none): ");
         int slots = promptForSlots();
 
+        if (openingDate != null && closingDate != null) {
+            if (closingDate.isBefore(openingDate)) {
+                System.out.println("\nError: Closing date must be after opening date.\nPlease check your dates and try again.\n");
+                return; 
+            }
+        }
+
         companyController.createInternship(title, description, level, preferredMajor, openingDate, closingDate, slots)
                 .ifPresentOrElse(
                         internship -> {
@@ -302,7 +302,6 @@ public class CompanyView {
     private void handleManageApplications() {
         boolean managing = true;
         while (managing) {
-            // Get all internships for this company
             List<Internship> internships = companyController.getInternships(FilterCriteria.builder().build());
             if (internships.isEmpty()) {
                 System.out.println();
@@ -311,8 +310,7 @@ public class CompanyView {
                 return;
             }
 
-            // Collect all applications across all internships, sorted by internship
-            List<Application> allApplications = new ArrayList<>();
+=            List<Application> allApplications = new ArrayList<>();
             Map<Integer, String> internshipTitles = new HashMap<>();
 
             for (Internship internship : internships) {
@@ -329,7 +327,6 @@ public class CompanyView {
                 return;
             }
 
-            // Sort by internship ID
             allApplications.sort(Comparator.comparingInt(Application::getInternshipId));
 
             System.out.println();
@@ -351,7 +348,6 @@ public class CompanyView {
             System.out.println();
             int applicationId;
 
-            // Loop until a valid ID is entered or user cancels
             while (true) {
                 String input = ConsoleInput.readLine("Enter Application ID to process (or press Enter to go back): ");
                 if (input.isBlank()) {
@@ -359,7 +355,6 @@ public class CompanyView {
                     return;
                 }
 
-                // Try to parse the input as an integer
                 try {
                     applicationId = Integer.parseInt(input.trim());
                 } catch (NumberFormatException e) {
@@ -367,7 +362,6 @@ public class CompanyView {
                     continue;
                 }
 
-                // Validate the application ID
                 final int finalApplicationId = applicationId;
                 boolean validId = allApplications.stream()
                         .anyMatch(application -> application.getApplicationId() == finalApplicationId);

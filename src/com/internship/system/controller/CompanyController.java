@@ -77,7 +77,6 @@ public class CompanyController {
         if (slots <= 0 || slots > MAX_SLOTS) {
             return Optional.empty();
         }
-        // Validate required fields
         if (title == null || title.isBlank()) {
             return Optional.empty();
         }
@@ -129,15 +128,13 @@ public class CompanyController {
             return false;
         }
         Internship internship = internshipOpt.get();
-        // Cannot edit if status is APPROVED, REJECTED, or FILLED - only PENDING
-        // internships can be edited
+
         if (internship.getStatus() != InternshipStatus.PENDING) {
             return false;
         }
         if (slots <= 0 || slots > MAX_SLOTS) {
             return false;
         }
-        // Validate required fields
         if (title == null || title.isBlank()) {
             return false;
         }
@@ -219,8 +216,7 @@ public class CompanyController {
         application.setStatus(newStatus);
         application.setWithdrawalRequested(false);
 
-        // If changing from SUCCESSFUL_ACCEPTED to something else, may need to revoke
-        // offer
+
         if (oldStatus == ApplicationStatus.SUCCESSFUL_ACCEPTED
                 && newStatus != ApplicationStatus.SUCCESSFUL_ACCEPTED
                 && internship.getConfirmedOffers() > 0) {
@@ -239,7 +235,6 @@ public class CompanyController {
             return false;
         }
         Internship internship = internshipOpt.get();
-        // Only allow deletion of PENDING internships
         if (internship.getStatus() != InternshipStatus.PENDING) {
             return false;
         }

@@ -107,10 +107,8 @@ public class StaffController {
         if (approve) {
             ApplicationStatus oldStatus = application.getStatus();
 
-            // Mark as SUCCESSFUL_WITHDRAWN
             application.setStatus(ApplicationStatus.SUCCESSFUL_WITHDRAWN);
 
-            // If student had accepted an offer, revoke the confirmed offer
             if (oldStatus == ApplicationStatus.SUCCESSFUL_ACCEPTED) {
                 dataManager.findInternshipById(application.getInternshipId())
                         .ifPresent(internship -> {

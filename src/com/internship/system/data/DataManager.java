@@ -222,10 +222,7 @@ public class DataManager {
                 .collect(Collectors.groupingBy(
                         Application::getInternshipId,
                         Collectors.counting()));
-
-        // For each student, check if they have exactly one SUCCESSFUL_ACCEPTED with all
-        // others withdrawn
-        // This indicates they've actually accepted (not just been offered)
+                        
         Map<Integer, Long> confirmedCounts = applications.stream()
                 .filter(application -> application.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED)
                 .filter(application -> {
@@ -235,7 +232,7 @@ public class DataManager {
                                     || app.getStatus() == ApplicationStatus.SUCCESSFUL_ACCEPTED
                                     || app.getStatus() == ApplicationStatus.SUCCESSFUL_REJECTED)
                             .count();
-                    return activeCount == 1; // Only this application is active
+                    return activeCount == 1; 
                 })
                 .collect(Collectors.groupingBy(Application::getInternshipId, Collectors.counting()));
 
