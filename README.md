@@ -1,5 +1,10 @@
 # Internship Placement Management System
 
+## IMPT: Run the following commands to start system
+
+javac -d out $(find src -name "\*.java")
+java -cp out com.internship.system.Main
+
 ## 1. Overview
 
 The Internship Placement Management System is a command-line interface (CLI) application designed to serve as a centralized hub for Students, Company Representatives, and Career Center Staff. It facilitates the process of internship posting, application, and management. The system is built with a focus on Object-Oriented Design and Programming (OODP) principles, without the use of databases, JSON, or XML for data persistence.
@@ -393,8 +398,3 @@ Each view class is responsible for displaying a specific set of menus and inform
 - **Level Eligibility:** Students in year 1-2 can only apply to BASIC level internships. Students in year 3 and above can apply to internships of any level.
 - **Default Password:** New company representative accounts are created with the default password "password", which should be changed on first login.
 - **Withdrawal Process:** Students can request withdrawal of accepted offers (SUCCESSFUL_ACCEPTED). These requests must be processed by staff. When a student accepts an offer, all other pending applications are automatically withdrawn.
-
-## 6. Commands
-
-javac -d out $(find src -name "\*.java")
-java -cp out com.internship.system.Main
