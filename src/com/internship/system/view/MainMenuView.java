@@ -18,6 +18,7 @@ public class MainMenuView {
 
     public void displayMainOptions() {
         System.out.println();
+        System.out.println("==== Main Menu ====");
         System.out.println("1. Login");
         System.out.println("2. Register as Company Representative");
         System.out.println("3. Exit");
@@ -66,29 +67,35 @@ public class MainMenuView {
         System.out.println("Invalid credentials or account not yet approved. Please try again.");
         System.out.println();
     }
+
     public void displayAccountNotApproved() {
         System.out.println();
         System.out.println("Your account is not active.");
         System.out.println();
     }
+
     public void displayUserNotFound(String userId) {
         System.out.println();
         System.out.println("No account found with User ID: " + userId);
         System.out.println();
     }
+
     public void displayWrongPassword() {
         System.out.println();
         System.out.println("Incorrect password.");
         System.out.println();
     }
+
     public void displayPasswordRetryMenu() {
         System.out.println("1. Reset Password");
         System.out.println("2. Try Again");
         System.out.println("3. Back to Main Menu");
     }
+
     public int promptForPasswordRetrySelection() {
         return ConsoleInput.readInt("Select an option: ");
     }
+
     public void displayTemporaryPassword(String tempPassword) {
         System.out.println();
         System.out.println("Your password has been reset.");

@@ -21,7 +21,8 @@ import java.util.Map;
 
 /**
  * View class for company representative interface.
- * Handles display and user interaction for managing internships and applications.
+ * Handles display and user interaction for managing internships and
+ * applications.
  */
 public class CompanyView {
     /** Controller for company operations. */
@@ -35,7 +36,7 @@ public class CompanyView {
      * Constructs a new CompanyView with the specified controllers.
      *
      * @param companyController the company controller
-     * @param authController the authentication controller
+     * @param authController    the authentication controller
      */
     public CompanyView(CompanyController companyController, AuthController authController) {
         this.companyController = companyController;
@@ -74,6 +75,8 @@ public class CompanyView {
         System.out.println();
         System.out.println("==== Company Representative Menu ====");
         System.out.println("Logged in as: " + rep.getName() + " (" + rep.getUserId() + ")");
+        System.out.println("Company: " + rep.getCompanyName() + " | Department: " + rep.getDepartment()
+                + " | Position: " + rep.getPosition());
         System.out.println("1. View and Manage Company Internships");
         System.out.println("2. Create Internship");
         System.out.println("3. View and Process Applications");
@@ -163,6 +166,14 @@ public class CompanyView {
     }
 
     private void handleUpdateInternshipDetails(int internshipId) {
+        if (!companyController.canUpdateInternship(internshipId)) {
+            System.out.println();
+            System.out.println(
+                    "Unable to update internship. Ensure it exists, belongs to you, and is in PENDING status.");
+            System.out.println();
+            return;
+        }
+
         String title = ConsoleInput.readLine("New Title: ");
         String description = ConsoleInput.readLine("New Description: ");
         InternshipLevel level = promptForLevel();
@@ -178,7 +189,7 @@ public class CompanyView {
             System.out.println("Internship updated successfully.");
         } else {
             System.out.println(
-                    "Failed to update internship. Ensure it exists, belongs to you, is in PENDING status, and has valid data.");
+                    "Failed to update internship. Please ensure all fields are valid (slots must be 1-10, all text fields must be non-empty).");
         }
         System.out.println();
     }
@@ -293,8 +304,9 @@ public class CompanyView {
 
         if (openingDate != null && closingDate != null) {
             if (closingDate.isBefore(openingDate)) {
-                System.out.println("\nError: Closing date must be after opening date.\nPlease check your dates and try again.\n");
-                return; 
+                System.out.println(
+                        "\nError: Closing date must be after opening date.\nPlease check your dates and try again.\n");
+                return;
             }
         }
 
@@ -351,9 +363,16 @@ public class CompanyView {
                     System.out.println("\n[Internship ID: " + currentInternshipId + " - " +
                             internshipTitles.get(currentInternshipId) + "]");
                 }
-                System.out.printf("  App ID: %d | Student ID: %s | Status: %s | Withdrawal Req: %s%n",
+                String studentName = companyController.getStudentName(application.getStudentId());
+                String studentMajor = companyController.getStudentMajor(application.getStudentId());
+                int yearOfStudy = companyController.getStudentYearOfStudy(application.getStudentId());
+                System.out.printf(
+                        "  App ID: %d | Student ID: %s | Name: %s | Major: %s | Year: %d | Status: %s | Withdrawal Req: %s%n",
                         application.getApplicationId(),
                         application.getStudentId(),
+                        studentName,
+                        studentMajor,
+                        yearOfStudy,
                         application.getStatus(),
                         application.isWithdrawalRequested() ? "Yes" : "No");
             }

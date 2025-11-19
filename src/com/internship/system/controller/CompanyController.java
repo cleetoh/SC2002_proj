@@ -8,6 +8,7 @@ import com.internship.system.model.enums.ApplicationStatus;
 import com.internship.system.model.enums.InternshipLevel;
 import com.internship.system.model.enums.InternshipStatus;
 import com.internship.system.model.user.CompanyRepresentative;
+import com.internship.system.model.user.Student;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,7 +34,7 @@ public class CompanyController {
      * Constructs a new CompanyController for the specified representative.
      *
      * @param dataManager the data manager
-     * @param currentRep the company representative using this controller
+     * @param currentRep  the company representative using this controller
      */
     public CompanyController(DataManager dataManager, CompanyRepresentative currentRep) {
         this.dataManager = dataManager;
@@ -44,13 +45,14 @@ public class CompanyController {
      * Registers a new company representative.
      *
      * @param dataManager the data manager
-     * @param email the email (used as user ID)
-     * @param name the full name
+     * @param email       the email (used as user ID)
+     * @param name        the full name
      * @param companyName the company name
-     * @param department the department
-     * @param position the position/title
+     * @param department  the department
+     * @param position    the position/title
      * @return the newly created representative
-     * @throws IllegalArgumentException if a representative with the same ID already exists
+     * @throws IllegalArgumentException if a representative with the same ID already
+     *                                  exists
      */
     public static CompanyRepresentative register(DataManager dataManager,
             String email,
@@ -87,7 +89,8 @@ public class CompanyController {
      * Gets internships for the current company, filtered by criteria.
      *
      * @param criteria the filtering criteria
-     * @return list of internships matching the criteria and belonging to the company
+     * @return list of internships matching the criteria and belonging to the
+     *         company
      */
     public List<Internship> getInternships(FilterCriteria criteria) {
         List<Internship> filteredInternships = dataManager.getFilteredInternships(criteria);
@@ -109,14 +112,15 @@ public class CompanyController {
     /**
      * Creates a new internship posting.
      *
-     * @param title the internship title
-     * @param description the description
-     * @param level the difficulty level
+     * @param title          the internship title
+     * @param description    the description
+     * @param level          the difficulty level
      * @param preferredMajor the preferred major
-     * @param openingDate the opening date (can be null)
-     * @param closingDate the closing date (can be null)
-     * @param slots the number of slots (1-10)
-     * @return Optional containing the created internship if successful, empty otherwise
+     * @param openingDate    the opening date (can be null)
+     * @param closingDate    the closing date (can be null)
+     * @param slots          the number of slots (1-10)
+     * @return Optional containing the created internship if successful, empty
+     *         otherwise
      */
     public Optional<Internship> createInternship(String title,
             String description,
@@ -175,17 +179,36 @@ public class CompanyController {
     }
 
     /**
-     * Updates an existing internship.
-     * Only works for internships in PENDING status that are owned by the current representative.
+     * Checks if an internship can be updated.
+     * An internship can be updated if it exists, is owned by the current
+     * representative,
+     * and is in PENDING status.
      *
      * @param internshipId the internship ID
-     * @param title the new title
-     * @param description the new description
-     * @param level the new level
+     * @return true if the internship can be updated, false otherwise
+     */
+    public boolean canUpdateInternship(int internshipId) {
+        Optional<Internship> internshipOpt = ensureOwnership(internshipId);
+        if (internshipOpt.isEmpty()) {
+            return false;
+        }
+        Internship internship = internshipOpt.get();
+        return internship.getStatus() == InternshipStatus.PENDING;
+    }
+
+    /**
+     * Updates an existing internship.
+     * Only works for internships in PENDING status that are owned by the current
+     * representative.
+     *
+     * @param internshipId   the internship ID
+     * @param title          the new title
+     * @param description    the new description
+     * @param level          the new level
      * @param preferredMajor the new preferred major
-     * @param openingDate the new opening date
-     * @param closingDate the new closing date
-     * @param slots the new number of slots
+     * @param openingDate    the new opening date
+     * @param closingDate    the new closing date
+     * @param slots          the new number of slots
      * @return true if update successful, false otherwise
      */
     public boolean updateInternship(int internshipId,
@@ -260,7 +283,8 @@ public class CompanyController {
      * Gets all applications for a specific internship.
      *
      * @param internshipId the internship ID
-     * @return list of applications, or empty list if internship not found or not owned
+     * @return list of applications, or empty list if internship not found or not
+     *         owned
      */
     public List<Application> viewApplicationsForInternship(int internshipId) {
         Optional<Internship> internshipOpt = ensureOwnership(internshipId);
@@ -275,7 +299,8 @@ public class CompanyController {
      * Can approve (SUCCESSFUL_PENDING) or reject (UNSUCCESSFUL) applications.
      *
      * @param applicationId the application ID
-     * @param newStatus the new status (must be SUCCESSFUL_PENDING or UNSUCCESSFUL)
+     * @param newStatus     the new status (must be SUCCESSFUL_PENDING or
+     *                      UNSUCCESSFUL)
      * @return true if processing successful, false otherwise
      */
     public boolean processApplication(int applicationId, ApplicationStatus newStatus) {
@@ -309,7 +334,6 @@ public class CompanyController {
         application.setStatus(newStatus);
         application.setWithdrawalRequested(false);
 
-
         if (oldStatus == ApplicationStatus.SUCCESSFUL_ACCEPTED
                 && newStatus != ApplicationStatus.SUCCESSFUL_ACCEPTED
                 && internship.getConfirmedOffers() > 0) {
@@ -324,7 +348,8 @@ public class CompanyController {
 
     /**
      * Deletes an internship.
-     * Only works for internships in PENDING status that are owned by the current representative.
+     * Only works for internships in PENDING status that are owned by the current
+     * representative.
      *
      * @param internshipId the internship ID
      * @return true if deletion successful, false otherwise
@@ -359,5 +384,41 @@ public class CompanyController {
             return Optional.empty();
         }
         return Optional.of(internship);
+    }
+
+    /**
+     * Gets the student name for a given student ID.
+     *
+     * @param studentId the student ID
+     * @return the student name, or "Unknown" if not found
+     */
+    public String getStudentName(String studentId) {
+        return dataManager.findStudentById(studentId)
+                .map(Student::getName)
+                .orElse("Unknown");
+    }
+
+    /**
+     * Gets the student major for a given student ID.
+     *
+     * @param studentId the student ID
+     * @return the student major, or "Unknown" if not found
+     */
+    public String getStudentMajor(String studentId) {
+        return dataManager.findStudentById(studentId)
+                .map(Student::getMajor)
+                .orElse("Unknown");
+    }
+
+    /**
+     * Gets the student year of study for a given student ID.
+     *
+     * @param studentId the student ID
+     * @return the year of study, or -1 if not found
+     */
+    public int getStudentYearOfStudy(String studentId) {
+        return dataManager.findStudentById(studentId)
+                .map(Student::getYearOfStudy)
+                .orElse(-1);
     }
 }
