@@ -282,10 +282,16 @@ public class StaffView {
             for (Application application : requests) {
                 String companyName = staffController.getCompanyNameForInternship(application.getInternshipId());
                 String title = staffController.getTitleForInternship(application.getInternshipId());
+                String studentName = staffController.getStudentName(application.getStudentId());
+                String studentMajor = staffController.getStudentMajor(application.getStudentId());
+                int studentYear = staffController.getStudentYearOfStudy(application.getStudentId());
                 System.out.printf(
-                        "Application ID: %d | Student ID: %s | Internship ID: %d | Title: %s | Company: %s | Status: %s%n",
+                        "Application ID: %d | Student ID: %s | Student Name: %s | Major: %s | Year: %s | Internship ID: %d | Title: %s | Company: %s | Status: %s%n",
                         application.getApplicationId(),
                         application.getStudentId(),
+                        studentName,
+                        studentMajor,
+                        studentYear > 0 ? String.valueOf(studentYear) : "Unknown",
                         application.getInternshipId(),
                         title,
                         companyName,

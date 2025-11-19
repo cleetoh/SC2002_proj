@@ -8,6 +8,7 @@ import com.internship.system.model.enums.ApplicationStatus;
 import com.internship.system.model.enums.InternshipStatus;
 import com.internship.system.model.user.CareerCenterStaff;
 import com.internship.system.model.user.CompanyRepresentative;
+import com.internship.system.model.user.Student;
 
 import java.util.List;
 import java.util.Optional;
@@ -164,5 +165,41 @@ public class StaffController {
         return dataManager.findInternshipById(internshipId)
                 .map(Internship::getTitle)
                 .orElse("Unknown");
+    }
+
+    /**
+     * Gets the student name for a given student ID.
+     *
+     * @param studentId the student ID
+     * @return the student name, or "Unknown" if not found
+     */
+    public String getStudentName(String studentId) {
+        return dataManager.findStudentById(studentId)
+                .map(Student::getName)
+                .orElse("Unknown");
+    }
+
+    /**
+     * Gets the student major for a given student ID.
+     *
+     * @param studentId the student ID
+     * @return the student major, or "Unknown" if not found
+     */
+    public String getStudentMajor(String studentId) {
+        return dataManager.findStudentById(studentId)
+                .map(Student::getMajor)
+                .orElse("Unknown");
+    }
+
+    /**
+     * Gets the student year of study for a given student ID.
+     *
+     * @param studentId the student ID
+     * @return the student year of study, or -1 if not found
+     */
+    public int getStudentYearOfStudy(String studentId) {
+        return dataManager.findStudentById(studentId)
+                .map(Student::getYearOfStudy)
+                .orElse(-1);
     }
 }
