@@ -36,7 +36,7 @@ public class MainMenuView {
     }
 
     public String promptForEmail() {
-        return ConsoleInput.readLine("Enter Company Email (will be your login ID): ");
+        return ConsoleInput.readLine("Enter Login ID: ");
     }
 
     public String promptForName() {
