@@ -16,7 +16,8 @@ import java.util.List;
 
 /**
  * View class for student interface.
- * Handles display and user interaction for browsing and applying to internships.
+ * Handles display and user interaction for browsing and applying to
+ * internships.
  */
 public class StudentView {
     /** Controller for student operations. */
@@ -30,7 +31,7 @@ public class StudentView {
      * Constructs a new StudentView with the specified controllers.
      *
      * @param studentController the student controller
-     * @param authController the authentication controller
+     * @param authController    the authentication controller
      */
     public StudentView(StudentController studentController, AuthController authController) {
         this.studentController = studentController;
@@ -68,6 +69,7 @@ public class StudentView {
         System.out.println();
         System.out.println("==== Student Menu ====");
         System.out.println("Logged in as: " + student.getName() + " (" + student.getUserId() + ")");
+        System.out.println("Major: " + student.getMajor() + " | Year of Study: " + student.getYearOfStudy());
         System.out.println("1. Browse and Apply for Internships");
         System.out.println("2. View and Manage My Applications");
         System.out.println("3. Set/Update Filters");
@@ -89,9 +91,10 @@ public class StudentView {
             System.out.println();
             System.out.println("--- Available Internships ---");
             for (Internship internship : internships) {
-                System.out.printf("ID: %d | %s | Level: %s | Major: %s | Slots: %d%n",
+                System.out.printf("ID: %d | %s | Company: %s | Level: %s | Major: %s | Slots: %d%n",
                         internship.getInternshipId(),
                         internship.getTitle(),
+                        internship.getCompanyName(),
                         internship.getLevel(),
                         internship.getPreferredMajor(),
                         internship.getSlots() - internship.getConfirmedOffers());
@@ -182,10 +185,14 @@ public class StudentView {
             System.out.println();
             System.out.println("--- My Applications ---");
             for (Application application : applications) {
+                String companyName = studentController.getCompanyNameForInternship(application.getInternshipId());
+                String title = studentController.getTitleForInternship(application.getInternshipId());
                 System.out.printf(
-                        "Application ID: %d | Internship ID: %d | Status: %s | Withdrawal Requested: %s%n",
+                        "Application ID: %d | Internship ID: %d | Title: %s | Company: %s | Status: %s | Withdrawal Requested: %s%n",
                         application.getApplicationId(),
                         application.getInternshipId(),
+                        title,
+                        companyName,
                         application.getStatus(),
                         application.isWithdrawalRequested() ? "Yes" : "No");
             }

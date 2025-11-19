@@ -30,7 +30,7 @@ public class StudentController {
     /**
      * Constructs a new StudentController for the specified student.
      *
-     * @param dataManager the data manager
+     * @param dataManager    the data manager
      * @param currentStudent the student using this controller
      */
     public StudentController(DataManager dataManager, Student currentStudent) {
@@ -59,6 +59,30 @@ public class StudentController {
 
     public List<Application> viewAppliedInternships() {
         return dataManager.getApplicationsForStudent(currentStudent.getUserId());
+    }
+
+    /**
+     * Gets the company name for a given internship ID.
+     *
+     * @param internshipId the internship ID
+     * @return the company name, or "Unknown" if not found
+     */
+    public String getCompanyNameForInternship(int internshipId) {
+        return dataManager.findInternshipById(internshipId)
+                .map(Internship::getCompanyName)
+                .orElse("Unknown");
+    }
+
+    /**
+     * Gets the title for a given internship ID.
+     *
+     * @param internshipId the internship ID
+     * @return the internship title, or "Unknown" if not found
+     */
+    public String getTitleForInternship(int internshipId) {
+        return dataManager.findInternshipById(internshipId)
+                .map(Internship::getTitle)
+                .orElse("Unknown");
     }
 
     public boolean applyForInternship(int internshipId) {

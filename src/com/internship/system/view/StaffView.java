@@ -31,7 +31,7 @@ public class StaffView {
      * Constructs a new StaffView with the specified controllers.
      *
      * @param staffController the staff controller
-     * @param authController the authentication controller
+     * @param authController  the authentication controller
      */
     public StaffView(StaffController staffController, AuthController authController) {
         this.staffController = staffController;
@@ -280,10 +280,15 @@ public class StaffView {
             System.out.println();
             System.out.println("--- Withdrawal Requests ---");
             for (Application application : requests) {
-                System.out.printf("Application ID: %d | Student ID: %s | Internship ID: %d | Status: %s%n",
+                String companyName = staffController.getCompanyNameForInternship(application.getInternshipId());
+                String title = staffController.getTitleForInternship(application.getInternshipId());
+                System.out.printf(
+                        "Application ID: %d | Student ID: %s | Internship ID: %d | Title: %s | Company: %s | Status: %s%n",
                         application.getApplicationId(),
                         application.getStudentId(),
                         application.getInternshipId(),
+                        title,
+                        companyName,
                         application.getStatus());
             }
 

@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * Controller for career center staff operations.
- * Handles approval/rejection of company representatives and internships, and withdrawal request processing.
+ * Handles approval/rejection of company representatives and internships, and
+ * withdrawal request processing.
  */
 public class StaffController {
     /** Data manager for accessing system data. */
@@ -26,7 +27,7 @@ public class StaffController {
     /**
      * Constructs a new StaffController for the specified staff member.
      *
-     * @param dataManager the data manager
+     * @param dataManager  the data manager
      * @param currentStaff the staff member using this controller
      */
     public StaffController(DataManager dataManager, CareerCenterStaff currentStaff) {
@@ -139,5 +140,29 @@ public class StaffController {
 
     public List<Internship> generateReport(FilterCriteria criteria) {
         return dataManager.getFilteredInternships(criteria);
+    }
+
+    /**
+     * Gets the company name for a given internship ID.
+     *
+     * @param internshipId the internship ID
+     * @return the company name, or "Unknown" if not found
+     */
+    public String getCompanyNameForInternship(int internshipId) {
+        return dataManager.findInternshipById(internshipId)
+                .map(Internship::getCompanyName)
+                .orElse("Unknown");
+    }
+
+    /**
+     * Gets the title for a given internship ID.
+     *
+     * @param internshipId the internship ID
+     * @return the internship title, or "Unknown" if not found
+     */
+    public String getTitleForInternship(int internshipId) {
+        return dataManager.findInternshipById(internshipId)
+                .map(Internship::getTitle)
+                .orElse("Unknown");
     }
 }
